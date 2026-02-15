@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#3B82F6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Privacy Check">
+<meta name="description" content="See what your phone reveals about you.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Privacy Check</title>
+<!-- Google Fonts: Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- SUI Design System -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@2.0.7/dist/sui-tokens.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@2.0.7/dist/sui-components.min.css">
+<style>
+/* ── App-specific styles (SUI doesn't cover these) ── */
+.app-wrap{max-width:640px;margin:0 auto;padding:var(--sui-space-3) var(--sui-space-3) 120px}
+.hero{text-align:center;padding:var(--sui-space-6) var(--sui-space-3) var(--sui-space-5)}
+.hero-icon{width:68px;height:68px;margin:0 auto var(--sui-space-3);border-radius:var(--sui-radius-lg);background:var(--sui-blue-soft);border:1px solid var(--sui-border);display:flex;align-items:center;justify-content:center;font-size:32px}
+.hero h1{margin-bottom:var(--sui-space-2)}
+.hero p{max-width:440px;margin:0 auto}
+
+/* Theme toggle in header */
+.theme-bar{display:flex;justify-content:flex-end;align-items:center;padding:var(--sui-space-2) 0}
+
+/* Report card stat row */
+.rc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sui-space-2);margin-top:var(--sui-space-3);padding-top:var(--sui-space-3);border-top:1px solid var(--sui-border)}
+.rc-stat{text-align:center}
+.rc-stat-n{font-family:var(--sui-font-mono);font-size:22px;font-weight:var(--sui-weight-bold);color:var(--sui-error)}
+.rc-stat-l{font-size:var(--sui-text-meta);color:var(--sui-text-muted);text-transform:uppercase;letter-spacing:.06em;font-weight:var(--sui-weight-bold);margin-top:2px}
+
+/* Grade grid */
+.grade-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sui-space-2);margin-top:var(--sui-space-3)}
+.g-cell{background:var(--sui-bg-elevated);border-radius:var(--sui-radius-md);padding:var(--sui-space-2) var(--sui-space-1);text-align:center;border:1px solid var(--sui-border)}
+.g-grade{font-family:var(--sui-font-mono);font-size:20px;font-weight:var(--sui-weight-bold);line-height:1}
+.g-label{font-size:9px;color:var(--sui-text-muted);text-transform:uppercase;letter-spacing:.5px;font-weight:var(--sui-weight-bold);margin-top:2px}
+
+/* Data items inside accordions */
+.d-item{background:var(--sui-bg-elevated);border:1px solid var(--sui-border);border-radius:var(--sui-radius-sm);margin-bottom:var(--sui-space-1);overflow:hidden}
+.d-row{display:flex;align-items:flex-start;padding:10px 12px;gap:var(--sui-space-2)}
+.d-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.d-dot-h{background:var(--sui-error)}.d-dot-m{background:var(--sui-warning)}.d-dot-l{background:var(--sui-info)}.d-dot-s{background:var(--sui-success)}
+.d-key{font-size:var(--sui-text-meta);color:var(--sui-text-secondary);flex-shrink:0;min-width:85px;font-weight:var(--sui-weight-semibold)}
+.d-val{font-family:var(--sui-font-mono);font-size:11px;color:var(--sui-blue-active);text-align:right;flex:1;word-break:break-all;line-height:1.4}
+.d-val-err{color:var(--sui-error)}.d-val-warn{color:var(--sui-warning)}.d-val-dim{color:var(--sui-text-muted)}
+.d-why{padding:var(--sui-space-2) 12px 10px;font-size:var(--sui-text-meta);color:var(--sui-text-secondary);line-height:1.5;border-top:1px solid var(--sui-border);display:flex;gap:6px}
+.d-why-s{font-weight:var(--sui-weight-semibold);color:var(--sui-text-primary);display:block;margin-bottom:2px}
+.d-why-t{font-size:11px;color:var(--sui-text-muted)}
+
+/* Touch demo */
+.touch-demo{position:relative;width:100%;height:200px;background:var(--sui-bg-elevated);border:2px dashed var(--sui-border);border-radius:var(--sui-radius-md);margin-bottom:var(--sui-space-2);overflow:hidden;touch-action:none}
+.touch-demo-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:var(--sui-text-small);color:var(--sui-text-muted);text-align:center;pointer-events:none;transition:opacity .3s}
+.touch-demo.active .touch-demo-label{opacity:.3}
+.touch-trail{position:absolute;width:12px;height:12px;border-radius:50%;opacity:0;pointer-events:none;transition:opacity .3s}
+.touch-overlay{position:absolute;bottom:8px;left:8px;right:8px;background:var(--sui-bg-card);border-radius:var(--sui-radius-sm);padding:8px 10px;font-family:var(--sui-font-mono);font-size:10px;color:var(--sui-blue-active);line-height:1.6;pointer-events:none;border:1px solid var(--sui-border);backdrop-filter:blur(8px)}
+
+/* Permission buttons — extend SUI btn */
+.perm-btn{width:100%;margin-bottom:var(--sui-space-1);border-style:dashed}
+.perm-btn.granted{border-style:solid;border-color:var(--sui-success);background:var(--sui-success-soft);color:var(--sui-success-strong)}
+.perm-btn.denied{border-style:solid;border-color:var(--sui-error);background:var(--sui-error-soft);color:var(--sui-error-strong)}
+
+/* Font grid */
+.font-grid{display:flex;flex-wrap:wrap;gap:4px;padding:10px 0}
+.font-tag{font-size:9px;padding:3px 6px;border-radius:var(--sui-radius-sm);font-family:var(--sui-font-mono);font-weight:500;background:var(--sui-bg-elevated);color:var(--sui-text-muted);border:1px solid var(--sui-border)}
+.font-tag.det{background:var(--sui-error-soft);color:var(--sui-error-strong);border-color:var(--sui-error)}
+
+/* Fingerprint hash box */
+.fp-box{background:var(--sui-bg-elevated);border:1px solid var(--sui-border);border-radius:var(--sui-radius-sm);padding:12px;margin-bottom:var(--sui-space-1)}
+.fp-label{font-size:var(--sui-text-meta);color:var(--sui-text-secondary);font-weight:var(--sui-weight-semibold)}
+.fp-hash{font-family:var(--sui-font-mono);font-size:10px;color:var(--sui-error);word-break:break-all;line-height:1.6;padding:10px;background:var(--sui-error-soft);border-radius:var(--sui-radius-sm);margin-top:var(--sui-space-2);border:1px solid var(--sui-error)}
+
+/* Scroll progress */
+.scroll-bar{position:fixed;top:0;left:0;height:3px;background:var(--sui-blue-primary);z-index:999;transition:width .1s}
+
+/* Protection check items */
+.chk{display:flex;align-items:center;gap:var(--sui-space-3);padding:var(--sui-space-3);background:var(--sui-bg-elevated);border:1px solid var(--sui-border);border-radius:var(--sui-radius-sm);margin-bottom:var(--sui-space-1)}
+.chk-ico{width:34px;height:34px;border-radius:var(--sui-radius-sm);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.chk-ico-pass{background:var(--sui-success-soft)}.chk-ico-fail{background:var(--sui-error-soft)}.chk-ico-mid{background:var(--sui-warning-soft)}
+.chk-t{font-size:var(--sui-text-small);font-weight:var(--sui-weight-semibold)}.chk-d{font-size:11px;color:var(--sui-text-muted);margin-top:2px;line-height:1.4}
+
+/* Tip cards */
+.tip{padding:var(--sui-space-3);background:var(--sui-bg-elevated);border:1px solid var(--sui-border);border-radius:var(--sui-radius-sm);margin-bottom:var(--sui-space-1)}
+.tip-t{font-size:var(--sui-text-small);font-weight:var(--sui-weight-bold);margin-bottom:var(--sui-space-1);display:flex;align-items:center;gap:6px}
+.tip-b{font-size:var(--sui-text-meta);color:var(--sui-text-secondary);line-height:1.6}
+.tip-b strong{color:var(--sui-text-primary);font-weight:var(--sui-weight-semibold)}
+
+/* Note */
+.note{font-size:var(--sui-text-meta);color:var(--sui-text-secondary);padding:var(--sui-space-1) 0 var(--sui-space-2);line-height:1.5}
+
+/* Accordion custom: badge in trigger */
+.acc-meta{display:flex;align-items:center;gap:var(--sui-space-2);margin-left:auto;margin-right:var(--sui-space-2)}
+
+/* Grade letter in report */
+.grade-letter{font-family:var(--sui-font-mono);font-size:56px;font-weight:var(--sui-weight-bold);line-height:1}
+.grade-label{font-size:var(--sui-text-small);color:var(--sui-text-secondary);margin-top:var(--sui-space-1);font-weight:500}
+
+/* Footer */
+.app-footer{text-align:center;padding:var(--sui-space-6) var(--sui-space-3);color:var(--sui-text-muted);font-size:var(--sui-text-meta);line-height:1.6;border-top:1px solid var(--sui-border);margin-top:var(--sui-space-5)}
+
+#fp-canvas{display:none}
+@media(max-width:400px){.grade-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="scroll-bar" id="scroll-bar"></div>
+<canvas id="fp-canvas" width="200" height="50"></canvas>
+
+<div class="app-wrap">
+  <!-- Theme toggle -->
+  <div class="theme-bar">
+    <label class="sui-toggle-label" id="theme-toggle-label">
+      <span style="font-size:var(--sui-text-meta);color:var(--sui-text-muted);font-weight:600">☀️ / 🌙</span>
+      <span class="sui-toggle">
+        <input type="checkbox" id="theme-toggle" aria-label="Toggle dark mode">
+        <span class="sui-toggle-track"></span>
+      </span>
+    </label>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-icon" aria-hidden="true">🔍</div>
+    <h1>Privacy Check</h1>
+    <p>See exactly what every website and app can learn about you — just by visiting. No hacks, just standard browser features.</p>
+    <div class="sui-mt-3">
+      <span class="sui-badge sui-badge-info sui-badge-sm">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+        Built for seniors, teens &amp; everyone who values privacy
+      </span>
+    </div>
+  </div>
+
+  <!-- Report Card -->
+  <div class="sui-card sui-mb-4" id="report">
+    <div style="text-align:center">
+      <span class="sui-badge sui-badge-neutral sui-badge-sm">YOUR PRIVACY REPORT CARD</span>
+    </div>
+    <div style="text-align:center" class="sui-mt-3">
+      <div class="grade-letter" id="o-grade" style="color:var(--sui-text-muted)">...</div>
+      <div class="grade-label" id="o-label">Scanning your device...</div>
+    </div>
+    <div class="sui-mt-3">
+      <div class="sui-progress-label"><span>Privacy Score</span><span id="score-pct">0%</span></div>
+      <div class="sui-progress"><div class="sui-progress-bar" id="score-bar" style="width:0%"></div></div>
+    </div>
+    <div class="grade-grid" id="g-grid"></div>
+    <div class="rc-stats">
+      <div class="rc-stat"><div class="rc-stat-n" id="s-leaks">0</div><div class="rc-stat-l">⚠ Data Points</div></div>
+      <div class="rc-stat"><div class="rc-stat-n" id="s-bits">0</div><div class="rc-stat-l">🔑 ID Bits</div></div>
+      <div class="rc-stat"><div class="rc-stat-n" id="s-uniq">0</div><div class="rc-stat-l">👤 Uniqueness</div></div>
+    </div>
+  </div>
+
+  <!-- Sections inserted here by JS -->
+  <div id="sections"></div>
+
+  <div class="app-footer">
+    All data collected using standard browser APIs only.<br>
+    Nothing is sent anywhere — runs entirely on your device.<br>
+    View source to verify. Made in Canada with love 🇨🇦
+  </div>
+</div>
+
+<!-- SUI JS (for accordion) -->
+<script src="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@2.0.7/dist/sui.min.js"></script>
+<script>
+(async function(){
+'use strict';
+
+/* ── Theme toggle ── */
+const toggle=document.getElementById('theme-toggle');
+const saved=localStorage.getItem('sui-theme');
+if(saved==='dark'){document.documentElement.setAttribute('data-theme','dark');toggle.checked=true}
+else if(saved==='light'){document.documentElement.setAttribute('data-theme','light')}
+toggle.addEventListener('change',()=>{
+  const t=toggle.checked?'dark':'light';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('sui-theme',t);
+});
+
+/* ── Globals ── */
+const SEC=document.getElementById('sections');
+let leaks=0,bits=0;
+const scores={};
+const gradeMap={A:4,B:3,C:2,D:1,F:0};
+
+function upStats(){
+  document.getElementById('s-leaks').textContent=leaks;
+  document.getElementById('s-bits').textContent=bits;
+  const u=Math.pow(2,Math.min(bits,33));
+  document.getElementById('s-uniq').textContent=u>1e6?(u/1e6).toFixed(0)+'M':u>1e3?(u/1e3).toFixed(0)+'K':u;
+}
+
+function gCol(g){return{A:'var(--sui-success)',B:'#66bb6a',C:'var(--sui-warning)',D:'#ff7043',F:'var(--sui-error)'}[g]}
+function gBadge(g){return{A:'sui-badge-success',B:'sui-badge-success',C:'sui-badge-warning',D:'sui-badge-error',F:'sui-badge-error'}[g]}
+
+function setOverall(){
+  const vs=Object.values(scores);if(!vs.length)return;
+  const avg=vs.reduce((s,g)=>s+(gradeMap[g]||0),0)/vs.length;
+  const o=avg>=3.5?'A':avg>=2.5?'B':avg>=1.5?'C':avg>=.5?'D':'F';
+  const el=document.getElementById('o-grade');el.textContent=o;el.style.color=gCol(o);
+  const labels={A:'✔ Well protected — nice work!',B:'✔ Decent — some exposure, but manageable.',C:'⚠ Moderate risk — several things are exposed.',D:'⚠ High risk — a lot of your data is visible.',F:'✕ Very exposed — websites can learn a lot about you.'};
+  document.getElementById('o-label').textContent=labels[o];
+  const pct=Math.round(avg/4*100);
+  document.getElementById('score-pct').textContent=pct+'%';
+  document.getElementById('score-bar').style.width=pct+'%';
+  const pb=document.querySelector('.sui-progress');
+  pb.className='sui-progress'+(pct>=75?' sui-progress-success':pct>=50?' sui-progress-warning':' sui-progress-error');
+}
+
+function buildGrid(){
+  const g=document.getElementById('g-grid');g.innerHTML='';
+  Object.entries(scores).forEach(([n,gr])=>{
+    const c=document.createElement('div');c.className='g-cell';
+    c.innerHTML=`<div class="g-grade" style="color:${gCol(gr)}">${gr}</div><div class="g-label">${n}</div>`;
+    g.appendChild(c);
+  });
+}
+
+/* ── Section builder (SUI accordion) ── */
+function mkSec(id,icon,title,sub,grade,open){
+  scores[id]=grade;
+  const wrap=document.createElement('div');wrap.className='sui-accordion sui-mb-2';wrap.id='sec-'+id;
+  const item=document.createElement('div');item.className='sui-accordion-item';
+  const trigger=document.createElement('button');
+  trigger.className='sui-accordion-trigger';
+  trigger.setAttribute('aria-expanded',open?'true':'false');
+  trigger.setAttribute('aria-controls','panel-'+id);
+  trigger.innerHTML=`
+    <span style="display:flex;align-items:center;gap:var(--sui-space-2);flex:1;min-width:0">
+      <span style="font-size:18px" aria-hidden="true">${icon}</span>
+      <span style="min-width:0">
+        <span style="display:block;font-size:var(--sui-text-body);font-weight:var(--sui-weight-semibold)">${title}</span>
+        <span style="display:block;font-size:var(--sui-text-meta);color:var(--sui-text-muted);font-weight:400;margin-top:1px">${sub}</span>
+      </span>
+    </span>
+    <span class="acc-meta">
+      <span class="sui-badge sui-badge-sm ${gBadge(grade)}" aria-label="Grade ${grade}">${grade}</span>
+    </span>
+    <svg class="sui-accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>`;
+  const panel=document.createElement('div');
+  panel.className='sui-accordion-panel';
+  panel.id='panel-'+id;
+  if(!open)panel.setAttribute('hidden','');
+  item.appendChild(trigger);item.appendChild(panel);wrap.appendChild(item);
+  SEC.appendChild(wrap);
+  // Init SUI accordion behavior
+  trigger.addEventListener('click',()=>{
+    const exp=trigger.getAttribute('aria-expanded')==='true';
+    trigger.setAttribute('aria-expanded',!exp);
+    if(exp)panel.setAttribute('hidden','');else panel.removeAttribute('hidden');
+  });
+  buildGrid();setOverall();
+  return panel;
+}
+
+/* ── Data item ── */
+function addI(p,risk,key,val,simple,tech,vc){
+  leaks++;
+  const d=document.createElement('div');d.className='d-item';
+  const has=simple||tech;
+  d.innerHTML=`<div class="d-row"><div class="d-dot d-dot-${risk}" aria-hidden="true"></div><span class="d-key">${key}</span><span class="d-val ${vc||''}">${val||'<span class="d-val-dim">unavailable</span>'}</span></div>${has?`<div class="d-why"><span aria-hidden="true" style="flex-shrink:0">💡</span><div>${simple?`<span class="d-why-s">${simple}</span>`:''}${tech?`<span class="d-why-t">${tech}</span>`:''}</div></div>`:''}`;
+  p.appendChild(d);upStats();
+}
+
+function addNote(p,t){const n=document.createElement('div');n.className='note';n.textContent=t;p.appendChild(n)}
+
+function addBtn(p,label,icon,fn){
+  const b=document.createElement('button');b.className='sui-btn sui-btn-ghost perm-btn';
+  b.innerHTML=`${icon} Tap to test: ${label}`;
+  b.onclick=async()=>{try{await fn(b,p);b.classList.add('granted');b.classList.remove('sui-btn-ghost')}catch(e){b.classList.add('denied');b.classList.remove('sui-btn-ghost');b.innerHTML=`✕ ${label}: Denied or unavailable`}};
+  p.appendChild(b);
+}
+
+function addChk(p,pass,title,desc){
+  const d=document.createElement('div');d.className='chk';
+  const ico=pass===true?'✔':pass===false?'✕':'⚠';
+  const cls=pass===true?'chk-ico-pass':pass===false?'chk-ico-fail':'chk-ico-mid';
+  d.innerHTML=`<div class="chk-ico ${cls}" aria-hidden="true">${ico}</div><div><div class="chk-t">${ico} ${title}</div><div class="chk-d">${desc}</div></div>`;
+  p.appendChild(d);
+}
+
+function hash(s){let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24)}h>>>=0;let h2=0xcbf29ce4;for(let i=s.length-1;i>=0;i-=2){h2^=s.charCodeAt(i);h2+=(h2<<1)+(h2<<4)+(h2<<7)+(h2<<8)+(h2<<24)}h2>>>=0;return(h.toString(16).padStart(8,'0')+h2.toString(16).padStart(8,'0')).toUpperCase().match(/.{4}/g).join(':')}
+
+
+// ════════════════════════════════════════════════
+// 1. DEVICE IDENTITY
+// ════════════════════════════════════════════════
+const c1=mkSec('Identity','📱','Device Identity','Browser, OS, language, timezone — who you are silently','F',true);
+addI(c1,'h','User Agent',navigator.userAgent,'This tells websites your exact phone model, browser, and OS.','Narrows you to ~1 in 1,500 users.');
+addI(c1,'m','Platform',navigator.platform||'unknown','Sites know if you\'re on iPhone, Android, Windows, or Mac.');
+addI(c1,'l','Vendor',navigator.vendor||'unknown');
+if(navigator.userAgentData){try{addI(c1,'h','UA Brands',navigator.userAgentData.brands.map(b=>b.brand+' v'+b.version).join(', '),'Structured browser identity via Client Hints.');addI(c1,'m','Mobile',navigator.userAgentData.mobile?'Yes':'No');bits+=3}catch(e){}}
+addI(c1,'h','Language',navigator.language,'Your language tells sites what country you\'re likely in.');
+if(navigator.languages){addI(c1,'h','All Languages',navigator.languages.join(', '),'Multiple languages reveal bilingual background.');bits+=4}
+addI(c1,'h','Timezone',Intl.DateTimeFormat().resolvedOptions().timeZone,'Combined with language, often pinpoints your city.');
+const off=new Date().getTimezoneOffset();addI(c1,'m','UTC Offset',`UTC${off<=0?'+':'-'}${Math.abs(off/60)}`);
+const rl=Intl.DateTimeFormat().resolvedOptions();
+addI(c1,'l','Calendar',rl.calendar||'gregory','Calendar system reveals cultural background.');
+addI(c1,'l','Numbers',rl.numberingSystem||'latn');
+addI(c1,'m','Do Not Track',navigator.doNotTrack==='1'?'Enabled ⚠':'Not set',navigator.doNotTrack==='1'?'Ironically, this makes you stand out from the ~85% who don\'t.':null);
+addI(c1,'l','Privacy Control',navigator.globalPrivacyControl?'Enabled':'Not set');
+addI(c1,'m','History Length',history.length+' pages','Sites see how many pages you\'ve visited in this tab.');
+addI(c1,'l','Local Time',new Date().toLocaleString());
+addI(c1,'m','Page Visible',document.visibilityState,'Sites know if you\'re looking at them or switched away.');
+const isPWA=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+addI(c1,'m','Running As',isPWA?'Installed App (PWA)':'Browser Tab','Sites detect if you installed them as an app.');
+bits+=12;
+
+// ════════════════════════════════════════════════
+// 2. HARDWARE
+// ════════════════════════════════════════════════
+const c2=mkSec('Hardware','🔧','Hardware Profile','Screen, CPU, RAM, sensors — your device\'s physical fingerprint','D',false);
+addI(c2,'h','Screen',`${screen.width}×${screen.height}`,'Screen size helps identify your device model.');
+addI(c2,'m','Available',`${screen.availWidth}×${screen.availHeight}`);
+addI(c2,'m','Viewport',`${window.innerWidth}×${window.innerHeight}`);
+addI(c2,'h','Pixel Density',window.devicePixelRatio+'x','Retina ratio (2x, 3x) narrows your device model.');
+addI(c2,'l','Color Depth',screen.colorDepth+'-bit');
+addI(c2,'m','Orientation',screen.orientation?screen.orientation.type:(window.innerHeight>window.innerWidth?'portrait':'landscape'),'Sites know how you hold your phone.');
+try{let cnt=0;await new Promise(r=>{const s=performance.now();function f(t){cnt++;if(t-s>500){r()}else requestAnimationFrame(f)}requestAnimationFrame(f)});const hz=Math.round(cnt*2);addI(c2,'m','Refresh Rate',hz+'Hz','120Hz = premium device. 60Hz = standard.');bits+=2}catch(e){}
+if(navigator.hardwareConcurrency){addI(c2,'h','CPU Cores',navigator.hardwareConcurrency+' cores','Core count reveals processor and device tier.');bits+=3}
+if(navigator.deviceMemory){addI(c2,'h','RAM',navigator.deviceMemory+' GB','Memory identifies your device.');bits+=3}
+addI(c2,'m','Touch Points',navigator.maxTouchPoints+' points','Separates phones from laptops.');
+addI(c2,'l','Input',window.matchMedia('(pointer: coarse)').matches?'Touch (finger)':'Precise (mouse)');
+addI(c2,'l','Hover',window.matchMedia('(hover: hover)').matches?'Yes':'No');
+try{if(window.matchMedia('(horizontal-viewport-segments: 2)').matches)addI(c2,'m','Foldable','Detected!','Foldable phone detected.')}catch(e){}
+bits+=10;
+
+// ════════════════════════════════════════════════
+// 3. NETWORK
+// ════════════════════════════════════════════════
+const c3=mkSec('Network','🌐','Network Exposure','Connection, speed, local IP','D',false);
+if(navigator.connection){const cn=navigator.connection;addI(c3,'h','Connection',cn.effectiveType||'unknown','Sites know if you\'re on WiFi or cellular.');if(cn.type)addI(c3,'h','Type',cn.type);if(cn.downlink)addI(c3,'m','Speed',cn.downlink+' Mbps');if(cn.rtt)addI(c3,'m','Latency',cn.rtt+' ms');if(cn.saveData!==undefined)addI(c3,'m','Data Saver',cn.saveData?'ON ⚠':'Off')}
+addI(c3,'l','Online',navigator.onLine?'Yes':'No');addI(c3,'m','Referrer',document.referrer||'Direct');addI(c3,'m','Protocol',location.protocol==='https:'?'HTTPS ✔':'HTTP ⚠');
+try{const pc=new RTCPeerConnection({iceServers:[]});pc.createDataChannel('');const o=await pc.createOffer();await pc.setLocalDescription(o);await new Promise(r=>{const t=setTimeout(r,2500);pc.onicecandidate=e=>{if(!e.candidate){clearTimeout(t);r();return}const m=e.candidate.candidate.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);if(m){addI(c3,'h','Local IP (WebRTC)',m[0],'Your internal IP leaks even through VPNs!','','d-val-err');bits+=4;clearTimeout(t);r()}}});pc.close()}catch(e){}
+addI(c3,'m','Beacon API','sendBeacon' in navigator?'Available':'No','Sends tracking data as you leave a page.');
+addNote(c3,'Your public IP is visible to every server (not shown here — this runs client-side).');
+
+// ════════════════════════════════════════════════
+// 4. BEHAVIOR
+// ════════════════════════════════════════════════
+const c4=mkSec('Behavior','👆','Behavior Tracking','Touch, mouse, scroll, typing — sites watch everything','F',false);
+addNote(c4,'Websites track every movement. Try the demo below.');
+const tb=document.createElement('div');tb.className='touch-demo';tb.id='td';
+tb.innerHTML=`<div class="touch-demo-label">👆 Touch or move mouse here<br><small>Watch how every movement is captured</small></div><div class="touch-overlay" id="tov" style="display:none"></div>`;
+c4.appendChild(tb);
+let tp=[];const tov=document.getElementById('tov'),td=document.getElementById('td');
+function logT(x,y,type,force){td.classList.add('active');tov.style.display='block';tp.push({x:x.toFixed(0),y:y.toFixed(0),t:Date.now()});const dot=document.createElement('div');dot.className='touch-trail';dot.style.cssText=`left:${x-6}px;top:${y-6}px;opacity:.6;background:${type==='touch'?'var(--sui-blue-primary)':'var(--sui-warning)'}`;td.appendChild(dot);setTimeout(()=>{dot.style.opacity='0'},600);setTimeout(()=>dot.remove(),1e3);if(tp.length>200)tp=tp.slice(-200);let spd=0;if(tp.length>1){const a=tp[tp.length-2],b=tp[tp.length-1];spd=((Math.sqrt((b.x-a.x)**2+(b.y-a.y)**2))/((b.t-a.t)||1)*1000).toFixed(0)}let ex='';if(force>0)ex=` | Force: ${force.toFixed(3)}`;tov.innerHTML=`Type: ${type} | Points: ${tp.length}<br>Pos: (${x.toFixed(0)}, ${y.toFixed(0)})${ex}<br>Speed: ${spd} px/sec<br><span style="color:var(--sui-error)">⚠ Sites use this for behavioral profiling</span>`}
+td.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0],r=td.getBoundingClientRect();logT(t.clientX-r.left,t.clientY-r.top,'touch',t.force||0)},{passive:false});
+td.addEventListener('touchstart',e=>{const t=e.touches[0],r=td.getBoundingClientRect();logT(t.clientX-r.left,t.clientY-r.top,'touch',t.force||0)},{passive:true});
+td.addEventListener('mousemove',e=>{const r=td.getBoundingClientRect();logT(e.clientX-r.left,e.clientY-r.top,'mouse',0)});
+addI(c4,'h','Touch Tracking','Every position readable','Sites record everywhere you touch.','Touch patterns are as unique as a fingerprint.');
+addI(c4,'h','Touch Pressure','force' in Touch.prototype?'Supported ⚠':'Not available','Pressure = biometric-level identifier.');
+addI(c4,'h','Mouse Tracking','Every position readable','Sites watch cursor movements.');
+addI(c4,'h','Pointer Events','Available','Unified API: touch + mouse + pen with tilt and pressure.');
+let maxScr=0,scrEv=0;const scrI=document.createElement('div');scrI.className='d-item';scrI.innerHTML=`<div class="d-row"><div class="d-dot d-dot-h"></div><span class="d-key">Scroll Depth</span><span class="d-val" id="scr-v">Scroll to update...</span></div><div class="d-why"><span aria-hidden="true">💡</span><div><span class="d-why-s">Sites track how far and fast you scroll.</span></div></div>`;c4.appendChild(scrI);leaks++;
+window.addEventListener('scroll',()=>{scrEv++;const p=((window.scrollY+window.innerHeight)/document.body.scrollHeight*100).toFixed(0);maxScr=Math.max(maxScr,parseInt(p));document.getElementById('scr-v').textContent=`${maxScr}% | ${scrEv} events`;document.getElementById('scroll-bar').style.width=p+'%'});
+addI(c4,'h','Tab Visibility',document.visibilityState,'Sites know when you switch tabs.');
+addI(c4,'h','Keystroke Timing','Measurable','Your typing rhythm is unique — >95% ID accuracy.');
+addI(c4,'m','Idle Detection','requestIdleCallback' in window?'Available':'No','Detects when you\'re not active.');
+addI(c4,'m','Window Focus',document.hasFocus()?'Focused':'Not focused');
+addI(c4,'m','Visibility Observer','IntersectionObserver' in window?'Available':'No','Tracks which content is on-screen.');
+bits+=8;
+
+// ════════════════════════════════════════════════
+// 5. SENSORS
+// ════════════════════════════════════════════════
+const c5=mkSec('Sensors','📡','Phone Sensors','Accelerometer, gyroscope, compass, light, proximity','D',false);
+addNote(c5,'Your phone has many sensors websites can access. Tap to test.');
+if('DeviceOrientationEvent' in window){addBtn(c5,'Compass / Orientation','🧭',async(btn,p)=>{if(typeof DeviceOrientationEvent.requestPermission==='function')await DeviceOrientationEvent.requestPermission();return new Promise(r=>{let done=false;window.addEventListener('deviceorientation',function h(e){if(done)return;done=true;window.removeEventListener('deviceorientation',h);if(e.alpha!=null)addI(p,'h','Compass',e.alpha.toFixed(1)+'°','Your phone knows which direction it\'s pointing.','','d-val-err');if(e.beta!=null)addI(p,'m','Tilt (β)',e.beta.toFixed(1)+'°');if(e.gamma!=null)addI(p,'m','Tilt (γ)',e.gamma.toFixed(1)+'°');btn.innerHTML='✔ Orientation captured';r()});setTimeout(()=>{if(!done){btn.innerHTML='⚠ No data';r()}},3000)})})}
+if('DeviceMotionEvent' in window){addBtn(c5,'Accelerometer & Gyroscope','🔄',async(btn,p)=>{if(typeof DeviceMotionEvent.requestPermission==='function')await DeviceMotionEvent.requestPermission();return new Promise(r=>{let done=false;window.addEventListener('devicemotion',function h(e){if(done)return;done=true;window.removeEventListener('devicemotion',h);const a=e.accelerationIncludingGravity;if(a&&a.x!=null)addI(p,'h','Acceleration',`x:${a.x.toFixed(2)} y:${a.y.toFixed(2)} z:${a.z.toFixed(2)}`,'Reveals how you hold your phone and your gait.','','d-val-err');if(e.rotationRate){const r2=e.rotationRate;addI(p,'h','Gyroscope',`α:${r2.alpha?.toFixed(2)} β:${r2.beta?.toFixed(2)} γ:${r2.gamma?.toFixed(2)}`,'Rotation data can reconstruct typing.','','d-val-err')}if(e.interval)addI(p,'l','Sample Rate',(1000/e.interval).toFixed(0)+' Hz');btn.innerHTML='✔ Motion captured';r()});setTimeout(()=>{if(!done){btn.innerHTML='⚠ No data';r()}},3000)})})}
+if('AmbientLightSensor' in window){addBtn(c5,'Ambient Light','💡',async(btn)=>{const s=new AmbientLightSensor();s.addEventListener('reading',()=>{addI(c5,'h','Light',s.illuminance+' lux','Sites can measure room brightness!');btn.innerHTML='✔ Light: '+s.illuminance+' lux';s.stop()});s.start()})}else{addI(c5,'l','Ambient Light','Not available','Some browsers can read room brightness.')}
+if('Magnetometer' in window){addBtn(c5,'Magnetometer','🧲',async(btn)=>{const s=new Magnetometer({frequency:10});s.addEventListener('reading',()=>{addI(c5,'h','Magnetic',`x:${s.x.toFixed(1)} y:${s.y.toFixed(1)} z:${s.z.toFixed(1)} µT`,'Reads magnetic field around your phone.');btn.innerHTML='✔ Magnetometer captured';s.stop()});s.start()})}
+addI(c5,'l','Proximity','ProximitySensor' in window?'Available':'Not available','Detects objects near the screen.');
+bits+=6;
+
+// ════════════════════════════════════════════════
+// 6. MEDIA
+// ════════════════════════════════════════════════
+const c6=mkSec('Media','🎵','Media & Capabilities','Camera, mic, codecs, voices','C',false);
+addBtn(c6,'Camera & Mic Info','📸',async(btn,p)=>{const ds=await navigator.mediaDevices.enumerateDevices();btn.innerHTML=`✔ Found ${ds.length} devices`;const gr={};ds.forEach(d=>{if(!gr[d.kind])gr[d.kind]=[];gr[d.kind].push(d)});Object.entries(gr).forEach(([k,ls])=>{const lb=k==='audioinput'?'Mic':k==='audiooutput'?'Speaker':k==='videoinput'?'Camera':k;ls.forEach((d,i)=>{addI(p,'h',`${lb} #${i+1}`,d.label||'(hidden)',i===0?'Device labels reveal brand and model.':null)})})});
+addBtn(c6,'Camera Resolution','📷',async(btn,p)=>{const st=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:9999},height:{ideal:9999}}});const tk=st.getVideoTracks()[0];const s=tk.getSettings();addI(p,'h','Resolution',`${s.width}×${s.height}`,'Camera resolution identifies your phone.','','d-val-err');if(s.facingMode)addI(p,'m','Facing',s.facingMode);if(s.frameRate)addI(p,'m','FPS',s.frameRate.toFixed(0));const caps=tk.getCapabilities?.();if(caps){if(caps.torch)addI(p,'m','Flash','Available — sites can control your flash!')}tk.stop();st.getTracks().forEach(t=>t.stop());btn.innerHTML='✔ Camera checked'});
+const codecs=['video/webm; codecs="vp8"','video/webm; codecs="vp9"','video/webm; codecs="av1"','video/mp4; codecs="avc1.42E01E"','audio/webm; codecs="opus"','audio/mp4; codecs="mp4a.40.2"'];
+const sup=codecs.filter(c=>{try{return MediaSource.isTypeSupported(c)}catch{return false}}).map(c=>c.split('"')[1]||c);
+if(sup.length){addI(c6,'m','Codecs',sup.join(', '),'Media format support fingerprints your browser.');bits+=5}
+try{let v=speechSynthesis.getVoices();const av=v=>{if(v.length){addI(c6,'h','Voices',v.length+' installed','Voice packs are almost unique per device.');bits+=5}};if(v.length)av(v);else speechSynthesis.onvoiceschanged=()=>av(speechSynthesis.getVoices())}catch(e){}
+addI(c6,'l','Speech Rec','webkitSpeechRecognition' in window||'SpeechRecognition' in window?'Available':'No');
+bits+=3;
+
+// ════════════════════════════════════════════════
+// 7. BROWSER
+// ════════════════════════════════════════════════
+const c7=mkSec('Browser','⚙️','Browser Capabilities','Storage, APIs, features — every capability is a clue','C',false);
+addI(c7,'h','Cookies',navigator.cookieEnabled?'Enabled':'Disabled','Cookies track you across visits.');
+addI(c7,'h','LocalStorage',typeof localStorage!=='undefined'?'Available':'Blocked','Persistent data that stays forever.');
+addI(c7,'h','IndexedDB',typeof indexedDB!=='undefined'?'Available':'Blocked','Full database in your browser.');
+addI(c7,'h','Cache API','caches' in window?'Available':'No','Persistent storage for tracking.');
+addI(c7,'m','Service Workers','serviceWorker' in navigator?'Yes':'No','Run background code after you leave.');
+addI(c7,'m','WebAssembly',typeof WebAssembly!=='undefined'?'Yes':'No');
+addI(c7,'l','SharedWorker',typeof SharedWorker!=='undefined'?'Yes':'No','Cross-tab tracking.');
+addI(c7,'l','Bluetooth','bluetooth' in navigator?'Yes':'No');
+addI(c7,'l','NFC','NDEFReader' in window?'Yes ⚠':'No','Can read contactless cards.');
+addI(c7,'m','Vibration','vibrate' in navigator?'Yes':'No','Sites can vibrate your phone.');
+addI(c7,'m','Notifications','Notification' in window?`Yes (${Notification.permission})`:null);
+addI(c7,'m','Push API','PushManager' in window?'Yes':'No');
+addI(c7,'l','Wake Lock','wakeLock' in navigator?'Yes':'No','Prevent screen from sleeping.');
+addI(c7,'l','Screen Capture','getDisplayMedia' in(navigator.mediaDevices||{})?'Yes':'No');
+addI(c7,'l','File System','showOpenFilePicker' in window?'Yes':'No');
+addI(c7,'l','Contacts','contacts' in navigator?'Yes':'No');
+addI(c7,'l','Barcode','BarcodeDetector' in window?'Yes':'No');
+if(navigator.storage&&navigator.storage.estimate){try{const e=await navigator.storage.estimate();addI(c7,'m','Storage Quota',(e.quota/(1024**3)).toFixed(1)+' GB','Hints at disk size.')}catch(e){}}
+bits+=8;
+
+// ════════════════════════════════════════════════
+// 8. GPU
+// ════════════════════════════════════════════════
+const c8=mkSec('GPU','🎮','GPU & Graphics','Your graphics chip exposed in detail','D',false);
+try{const cv=document.createElement('canvas');const gl=cv.getContext('webgl')||cv.getContext('experimental-webgl');if(gl){const di=gl.getExtension('WEBGL_debug_renderer_info');if(di){addI(c8,'h','GPU Model',gl.getParameter(di.UNMASKED_RENDERER_WEBGL),'Your exact GPU — one of the strongest identifiers.');addI(c8,'h','GPU Vendor',gl.getParameter(di.UNMASKED_VENDOR_WEBGL));bits+=8}addI(c8,'m','Max Texture',gl.getParameter(gl.MAX_TEXTURE_SIZE)+'px');addI(c8,'l','GLSL',gl.getParameter(gl.SHADING_LANGUAGE_VERSION));const exts=gl.getSupportedExtensions();if(exts){addI(c8,'h','Extensions',exts.length+' extensions','Extension set is like a serial number.');bits+=6}}}catch(e){}
+
+// ════════════════════════════════════════════════
+// 9. PREFERENCES
+// ════════════════════════════════════════════════
+const c9=mkSec('Preferences','🎨','Your Preferences','Settings and accessibility choices','C',false);
+addI(c9,'m','Theme',window.matchMedia('(prefers-color-scheme:dark)').matches?'Dark':'Light','~30% dark / 70% light split helps narrow you down.');
+addI(c9,'m','Reduced Motion',window.matchMedia('(prefers-reduced-motion:reduce)').matches?'Enabled ⚠':'Off','Very few enable this.');
+addI(c9,'l','High Contrast',window.matchMedia('(prefers-contrast:more)').matches?'On':'Off');
+addI(c9,'m','Color Gamut',window.matchMedia('(color-gamut:p3)').matches?'P3 (wide — likely Apple)':'sRGB');
+addI(c9,'l','HDR',window.matchMedia('(dynamic-range:high)').matches?'Yes':'No');
+addI(c9,'l','Inverted',window.matchMedia('(inverted-colors:inverted)').matches?'Yes':'No');
+bits+=5;
+
+// ════════════════════════════════════════════════
+// 10. FONTS
+// ════════════════════════════════════════════════
+const c10=mkSec('Fonts','🔤','Font Detection','Installed fonts are nearly unique to you','F',false);
+const tF=['Arial','Arial Black','Calibri','Cambria','Comic Sans MS','Consolas','Courier New','Georgia','Helvetica','Helvetica Neue','Impact','Lucida Console','Menlo','Monaco','Palatino','San Francisco','Segoe UI','Tahoma','Times New Roman','Trebuchet MS','Verdana','SF Pro','SF Mono','Roboto','Noto Sans','Ubuntu','Fira Code','Gill Sans','Futura','Optima','Avenir','Garamond','Baskerville','Copperplate','Didot','Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji'];
+const det=[];const bases=['monospace','sans-serif','serif'];const sp=document.createElement('span');sp.style.cssText='position:absolute;left:-9999px;font-size:72px;line-height:normal';sp.textContent='mmmmmmmmmmlli';document.body.appendChild(sp);const bW={};bases.forEach(f=>{sp.style.fontFamily=f;bW[f]=sp.offsetWidth});tF.forEach(f=>{let found=false;bases.forEach(b=>{sp.style.fontFamily=`'${f}',${b}`;if(sp.offsetWidth!==bW[b])found=true});if(found)det.push(f)});document.body.removeChild(sp);
+addI(c10,'h','Detected',det.length+'/'+tF.length+' tested','Your font combination is almost unique.','Font fingerprinting identifies ~80% of users.');
+const fg=document.createElement('div');fg.className='d-item';const gi=document.createElement('div');gi.className='font-grid';tF.forEach(f=>{const t=document.createElement('span');t.className='font-tag'+(det.includes(f)?' det':'');t.textContent=f;gi.appendChild(t)});fg.appendChild(gi);c10.appendChild(fg);
+if('queryLocalFonts' in window){addBtn(c10,'Full Font List','📝',async(btn,p)=>{const fonts=await window.queryLocalFonts();addI(p,'h','Total Fonts',fonts.length+' installed','Local Font Access exposes EVERY font.','','d-val-err');btn.innerHTML='✔ Found '+fonts.length})}
+bits+=12;
+
+// ════════════════════════════════════════════════
+// 11. INVISIBLE FINGERPRINTS
+// ════════════════════════════════════════════════
+const c11=mkSec('Fingerprints','👁','Invisible Fingerprints','Silent IDs that survive clearing cookies & incognito','F',false);
+addNote(c11,'These create unique IDs from your hardware. Clearing cookies or using incognito does NOT change them.');
+try{const cv=document.getElementById('fp-canvas');const ctx=cv.getContext('2d');ctx.textBaseline='top';ctx.font='14px Arial';ctx.fillStyle='#f60';ctx.fillRect(125,1,62,20);ctx.fillStyle='#069';ctx.fillText('fingerprint!',2,15);ctx.fillStyle='rgba(102,204,0,.7)';ctx.fillText('fingerprint!',4,17);ctx.globalCompositeOperation='multiply';ctx.fillStyle='rgb(255,0,255)';ctx.beginPath();ctx.arc(50,25,20,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgb(0,255,255)';ctx.beginPath();ctx.arc(70,25,20,0,Math.PI*2);ctx.fill();const ch=hash(cv.toDataURL());const fb=document.createElement('div');fb.className='fp-box';fb.innerHTML=`<div class="fp-label">Canvas Fingerprint</div><div class="fp-hash">${ch}</div>`;c11.appendChild(fb);addI(c11,'h','Canvas FP','Generated ↑','Sites draw invisible pictures and hash the result.','Used by ~60% of top 10K websites.');bits+=10}catch(e){}
+try{const ac=new(window.AudioContext||window.webkitAudioContext)();const osc=ac.createOscillator();const an=ac.createAnalyser();const g=ac.createGain();g.gain.value=0;osc.type='triangle';osc.frequency.setValueAtTime(10000,ac.currentTime);const comp=ac.createDynamicsCompressor();comp.threshold.value=-50;comp.knee.value=40;comp.ratio.value=12;osc.connect(comp);comp.connect(an);an.connect(g);g.connect(ac.destination);osc.start(0);const ah=hash(ac.sampleRate+'-'+ac.destination.maxChannelCount+'-'+an.fftSize+'-'+an.frequencyBinCount);const fb2=document.createElement('div');fb2.className='fp-box';fb2.innerHTML=`<div class="fp-label">Audio Fingerprint</div><div class="fp-hash">${ah}</div>`;c11.appendChild(fb2);addI(c11,'h','Audio FP','Generated ↑','Audio hardware processes sound uniquely — no sound played.');bits+=6;osc.stop();ac.close()}catch(e){}
+try{const gc=document.createElement('canvas');gc.width=256;gc.height=256;const gl=gc.getContext('webgl');if(gl){const vs=gl.createShader(gl.VERTEX_SHADER);gl.shaderSource(vs,'attribute vec2 p;void main(){gl_Position=vec4(p,0,1);}');gl.compileShader(vs);const fs=gl.createShader(gl.FRAGMENT_SHADER);gl.shaderSource(fs,'precision mediump float;void main(){gl_FragColor=vec4(0.86,0.24,0.48,1);}');gl.compileShader(fs);const pr=gl.createProgram();gl.attachShader(pr,vs);gl.attachShader(pr,fs);gl.linkProgram(pr);gl.useProgram(pr);gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-0.5,-0.5,0.5,-0.5,0,0.5]),gl.STATIC_DRAW);const a=gl.getAttribLocation(pr,'p');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);gl.drawArrays(gl.TRIANGLES,0,3);const px=new Uint8Array(256*256*4);gl.readPixels(0,0,256,256,gl.RGBA,gl.UNSIGNED_BYTE,px);const gh=hash(px.slice(0,1024).toString());const fb3=document.createElement('div');fb3.className='fp-box';fb3.innerHTML=`<div class="fp-label">WebGL Render Fingerprint</div><div class="fp-hash">${gh}</div>`;c11.appendChild(fb3);addI(c11,'h','WebGL FP','Generated ↑','GPU renders shapes with subtle device-specific differences.');bits+=8}}catch(e){}
+
+// ════════════════════════════════════════════════
+// 12. TIMING
+// ════════════════════════════════════════════════
+const c12=mkSec('Timing','⏱','Timing & Performance','Speed tests reveal your hardware','C',false);
+if(performance.timing){const t=performance.timing;const pl=t.loadEventEnd-t.navigationStart;if(pl>0)addI(c12,'m','Page Load',pl+'ms')}
+const t1=performance.now(),t2=performance.now();addI(c12,'m','Timer Precision',(t2-t1).toFixed(4)+'ms','Firefox rounds timers for privacy — ironically becoming more identifiable.');
+const bs=performance.now();let bv=0;for(let i=0;i<1e6;i++)bv+=Math.sqrt(i);addI(c12,'m','CPU Bench',(performance.now()-bs).toFixed(1)+'ms','Execution speed reveals processor type.');
+if(performance.memory)addI(c12,'m','JS Heap',(performance.memory.jsHeapSizeLimit/(1024**2)).toFixed(0)+' MB');
+bits+=3;
+
+// ════════════════════════════════════════════════
+// 13. PERMISSIONS
+// ════════════════════════════════════════════════
+const c13=mkSec('Permissions','🔓','Permission-Gated','What sites get when you tap "Allow"','C',false);
+addNote(c13,'These require permission — but many people tap "Allow" without thinking.');
+addBtn(c13,'Exact Location','📍',(btn,p)=>new Promise((rs,rj)=>{navigator.geolocation.getCurrentPosition(pos=>{btn.innerHTML='✔ Location granted';addI(p,'h','Latitude',pos.coords.latitude.toFixed(6),'Accurate enough to find your house.','','d-val-err');addI(p,'h','Longitude',pos.coords.longitude.toFixed(6),null,null,'d-val-err');addI(p,'h','Accuracy',pos.coords.accuracy.toFixed(0)+'m');if(pos.coords.altitude!=null)addI(p,'m','Altitude',pos.coords.altitude.toFixed(1)+'m');rs()},rj,{enableHighAccuracy:true})}));
+addBtn(c13,'Clipboard','📋',async(btn,p)=>{const t=await navigator.clipboard.readText();addI(p,'h','Clipboard',t?(t.length>150?t.substring(0,150)+'...':t):'(empty)','Whatever you last copied is readable.','','d-val-err');btn.innerHTML='✔ Clipboard read'});
+if('vibrate' in navigator)addBtn(c13,'Vibration','📳',async(btn)=>{navigator.vibrate([50,30,50]);addI(c13,'m','Vibration','Triggered!','Sites can vibrate your phone without asking.');btn.innerHTML='✔ Vibrated!'});
+if('wakeLock' in navigator)addBtn(c13,'Wake Lock','🔆',async(btn)=>{const wl=await navigator.wakeLock.request('screen');addI(c13,'m','Wake Lock','Active','Sites can keep your screen on.');setTimeout(()=>wl.release(),5000);btn.innerHTML='✔ Wake Lock (5s)'});
+
+// ════════════════════════════════════════════════
+// 14. BATTERY
+// ════════════════════════════════════════════════
+if(navigator.getBattery){try{const bat=await navigator.getBattery();const c14=mkSec('Battery','🔋','Battery Status','No permission needed in some browsers','C',false);addI(c14,'m','Level',(bat.level*100).toFixed(0)+'%','Battery + charging = short-term cross-site tracker.');addI(c14,'m','Charging',bat.charging?'Yes ⚡':'No');if(bat.dischargingTime&&bat.dischargingTime!==Infinity)addI(c14,'m','Time Left',Math.round(bat.dischargingTime/60)+' min')}catch(e){}}
+
+// ════════════════════════════════════════════════
+// 15. PROTECTION CHECK
+// ════════════════════════════════════════════════
+const c15=mkSec('Protection','🛡️','Protection Check','How well are you protected right now?','B',false);
+
+// Show an SUI alert at top
+const alertDiv=document.createElement('div');alertDiv.className='sui-alert sui-alert-info sui-mb-3';alertDiv.innerHTML=`<div class="sui-alert-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg></div><div class="sui-alert-content"><div class="sui-alert-title">ℹ Protection Analysis</div>We test your browser for common privacy protections. Green = good, red = needs attention.</div>`;c15.appendChild(alertDiv);
+
+addChk(c15,location.protocol==='https:','Encrypted (HTTPS)',location.protocol==='https:'?'Connection encrypted — good!':'NOT encrypted — anyone can see your traffic.');
+addChk(c15,!navigator.cookieEnabled,'Cookies Blocked',navigator.cookieEnabled?'Cookies enabled — sites track you. Consider blocking third-party cookies.':'Blocked — limits tracking.');
+let adB=false;try{const d=document.createElement('div');d.innerHTML='&nbsp;';d.className='adsbox ad-placement';d.style.cssText='position:absolute;left:-9999px;height:1px';document.body.appendChild(d);await new Promise(r=>setTimeout(r,100));adB=d.offsetHeight===0;document.body.removeChild(d)}catch(e){}
+addChk(c15,adB,'Ad Blocker',adB?'Detected — blocks trackers and malicious ads.':'Not detected. Install uBlock Origin.');
+let rtcSafe=true;try{const pc=new RTCPeerConnection({iceServers:[]});pc.createDataChannel('');const o=await pc.createOffer();await pc.setLocalDescription(o);await new Promise(r=>{const t=setTimeout(r,1500);pc.onicecandidate=e=>{if(!e.candidate){clearTimeout(t);r();return}if(e.candidate.candidate.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/)){rtcSafe=false;clearTimeout(t);r()}}});pc.close()}catch(e){}
+addChk(c15,rtcSafe,'WebRTC IP Protection',rtcSafe?'Not leaking local IP.':'⚠ Leaking IP even through VPN. Use a WebRTC blocker extension.');
+const isFF=navigator.userAgent.includes('Firefox'),isBrave=navigator.brave!==undefined,isSaf=/Safari/.test(navigator.userAgent)&&!/Chrome/.test(navigator.userAgent);
+addChk(c15,isFF||isBrave||isSaf,'3rd-Party Cookie Blocking',(isFF||isBrave||isSaf)?'Your browser blocks cross-site tracking.':'May allow tracking cookies. Firefox/Brave/Safari block by default.');
+addChk(c15,isBrave,'Fingerprint Randomization',isBrave?'Brave randomizes your fingerprint — excellent!':'Not available. Brave does this automatically.');
+
+// ════════════════════════════════════════════════
+// 16. TIPS
+// ════════════════════════════════════════════════
+const c16=mkSec('Tips','💪','What You Can Do','Practical steps to protect yourself','A',true);
+
+const tips=[
+  {i:'🌐',t:'Use a Privacy Browser',b:'<strong>Best:</strong> Firefox (Tracking Protection → Strict) or Brave (randomizes fingerprints). Avoid Chrome if privacy matters.'},
+  {i:'🔒',t:'Install an Ad Blocker',b:'<strong>uBlock Origin</strong> — free, open source, blocks trackers and fingerprinting scripts.'},
+  {i:'🌍',t:'Use a VPN',b:'Hides your IP. <strong>Good:</strong> Mullvad, ProtonVPN, IVPN. Avoid free VPNs.'},
+  {i:'🚫',t:'Deny Permissions by Default',b:'Location, camera, mic, notifications — <strong>say no</strong> unless absolutely needed.'},
+  {i:'🍪',t:'Block Third-Party Cookies',b:'Firefox & Brave do this automatically. Clear cookies regularly.'},
+  {i:'📱',t:'Audit Phone Permissions',b:'Settings → Privacy: which apps access location, camera, contacts? Does a flashlight app need your location?'},
+  {i:'🔐',t:'Strong Passwords + 2FA',b:'Use <strong>Bitwarden</strong> (free). Enable two-factor authentication everywhere.'},
+  {i:'🧹',t:'Clearing Cookies Isn\'t Enough',b:'Your fingerprint persists. Browser choice and extensions matter more.'},
+  {i:'👀',t:'Be Skeptical of "Free"',b:'Free apps harvest data. Use <strong>ToS;DR</strong> for privacy policy summaries.'},
+  {i:'📺',t:'Incognito ≠ Invisible',b:'Private mode hides local history only. Your fingerprint stays the same. Combine with VPN + privacy browser.'},
+];
+tips.forEach(t=>{const c=document.createElement('div');c.className='tip';c.innerHTML=`<div class="tip-t">${t.i} ${t.t}</div><div class="tip-b">${t.b}</div>`;c16.appendChild(c)});
+
+/* Final stats */
+upStats();
+
+/* Register SW */
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+})();
+</script>
+</body>
+</html>

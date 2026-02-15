@@ -1,0 +1,12 @@
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/README.md"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/README"
+  to = "/"
+  status = 301
