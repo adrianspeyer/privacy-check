@@ -5,8 +5,8 @@
  * - Make "Update" button apply immediately
  */
 
-const CACHE_NAME = 'privacy-check-v3.6'; // MUST MATCH APP_VERSION in index.html
-const RUNTIME_CACHE = 'privacy-check-runtime-v3.6';
+const CACHE_NAME = 'privacy-check-v3.7'; // MUST MATCH APP_VERSION in index.html
+const RUNTIME_CACHE = 'privacy-check-runtime-v3.7';
 
 // Only cache same-origin paths (no leading domain)
 const CORE_ASSETS = [

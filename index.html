@@ -2,158 +2,94 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#3B82F6">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Privacy Check">
-<meta name="description" content="Audit your digital footprint. See what your device reveals.">
+<meta name="description" content="Audit your digital footprint. See what your phone reveals.">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="icon" href="data:,">
+<link rel="icon" href="data:,"> 
 <title>Privacy Check</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@2.0.7/dist/sui-tokens.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@2.0.7/dist/sui-components.min.css">
 <script src="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@2.0.7/dist/sui.min.js" defer></script>
 
 <style>
 /* ── PWA Physics ── */
-html, body { height: 100%; background: var(--sui-bg-primary); }
-body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; -webkit-user-select: none; user-select: none; touch-action: pan-y; }
+body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; background: var(--sui-bg-primary); -webkit-user-select: none; user-select: none; touch-action: pan-y; }
 .app-scroller { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: env(safe-area-inset-bottom); overscroll-behavior-y: none; }
 .app-wrap { max-width: 640px; margin: 0 auto; padding: 0 var(--sui-space-3) 160px; }
 
-/* allow copy for educational content */
-.d-val, .d-why, .edu-box, .sui-footer { -webkit-user-select: text; user-select: text; }
-
 /* ── Sticky Action Bar ── */
-.action-bar{
-  position: sticky; top: 0; z-index: 999;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px var(--sui-space-3); margin: 0 -16px;
-  padding-left: calc(var(--sui-space-3) + env(safe-area-inset-left));
-  padding-right: calc(var(--sui-space-3) + env(safe-area-inset-right));
-  padding-top: calc(12px + env(safe-area-inset-top));
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--sui-border);
-}
+.action-bar { position: sticky; top: 0; z-index: 999; display: flex; justify-content: space-between; align-items: center; padding: 12px var(--sui-space-3); margin: 0 -16px; padding-left: calc(var(--sui-space-3) + env(safe-area-inset-left)); padding-right: calc(var(--sui-space-3) + env(safe-area-inset-right)); padding-top: calc(12px + env(safe-area-inset-top)); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--sui-border); }
 [data-theme="dark"] .action-bar { background: rgba(11, 15, 26, 0.95); }
-.btn-rescan{
-  background: var(--sui-blue-primary); color: white; border: none; border-radius: 24px;
-  padding: 8px 18px; font-size: 15px; font-weight: 600;
-  display: flex; align-items: center; gap: 8px;
-  box-shadow: var(--sui-shadow-sm); cursor: pointer;
-}
-.btn-rescan:active{ transform: scale(0.96); }
-.btn-rescan svg{ width:18px; height:18px; }
+.btn-rescan { background: var(--sui-blue-primary); color: white; border: none; border-radius: 24px; padding: 8px 18px; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: var(--sui-shadow-sm); cursor: pointer; }
+.btn-rescan:active { transform: scale(0.96); }
+.btn-rescan svg { width: 18px; height: 18px; }
 
 /* ── UI Components ── */
-.hero{ text-align:center; padding: var(--sui-space-5) var(--sui-space-3) 24px; }
-.hero-icon{
-  width:64px; height:64px; margin:0 auto 16px;
-  border-radius: var(--sui-radius-lg);
-  background: var(--sui-blue-soft);
-  border:1px solid var(--sui-border);
-  display:flex; align-items:center; justify-content:center;
-  font-size:30px;
-}
+.hero { text-align: center; padding: var(--sui-space-5) var(--sui-space-3) 24px; }
+.hero-icon { width: 64px; height: 64px; margin: 0 auto 16px; border-radius: var(--sui-radius-lg); background: var(--sui-blue-soft); border: 1px solid var(--sui-border); display: flex; align-items: center; justify-content: center; font-size: 30px; }
 
 /* Report Card */
-.rc-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:16px; }
-.rc-col{ text-align:center; padding:16px; background:var(--sui-bg-elevated);
-  border-radius: var(--sui-radius-lg); border:1px solid var(--sui-border); }
-.rc-label{ font-size:11px; font-weight:700; text-transform:uppercase; color:var(--sui-text-muted);
-  letter-spacing:0.05em; margin-bottom:8px; }
-.rc-val-big{ font-family: var(--sui-font-mono); font-size:42px; font-weight:700; line-height:1; }
-.rc-sub{ font-size:12px; color:var(--sui-text-secondary); margin-top:6px; font-weight:500; }
-.rc-meta{ margin-top:12px; font-size:12px; color: var(--sui-text-muted); }
+.rc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.rc-col { text-align: center; padding: 16px; background: var(--sui-bg-elevated); border-radius: var(--sui-radius-lg); border: 1px solid var(--sui-border); }
+.rc-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--sui-text-muted); letter-spacing: 0.05em; margin-bottom: 8px; }
+.rc-val-big { font-family: var(--sui-font-mono); font-size: 42px; font-weight: 700; line-height: 1; }
+.rc-sub { font-size: 12px; color: var(--sui-text-secondary); margin-top: 6px; font-weight: 500; }
 
 /* Headers */
-.sec-header{
-  font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em;
-  color:var(--sui-text-muted); margin:32px 0 12px; padding-left:4px;
-  display:flex; align-items:center; gap:8px;
-}
-.sec-line{ height:1px; background:var(--sui-border); flex:1; }
+.sec-header { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sui-text-muted); margin: 32px 0 12px; padding-left: 4px; display: flex; align-items: center; gap: 8px; }
+.sec-line { height: 1px; background: var(--sui-border); flex: 1; }
 
 /* Data Items */
-.d-item{ background:var(--sui-bg-elevated); border:1px solid var(--sui-border);
-  border-radius: var(--sui-radius-md); margin-bottom:16px; overflow:hidden; }
-.d-row{ display:flex; align-items:flex-start; padding:16px; gap:16px; }
-.d-dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:6px; }
-.d-dot-h{ background: var(--sui-error); }
-.d-dot-m{ background: var(--sui-warning); }
-.d-dot-s{ background: var(--sui-success); }
-.d-dot-l{ background: var(--sui-info); opacity:0.45; }
-
-.d-key{ font-size:14px; color:var(--sui-text-secondary); flex-shrink:0; min-width:120px; font-weight:600; }
-.d-val{ font-family: var(--sui-font-mono); font-size:14px; color: var(--sui-blue-active);
-  text-align:right; flex:1; overflow-wrap:anywhere; line-height:1.6; }
-.d-why{ padding:12px 16px; background: rgba(0,0,0,0.03); font-size:13px;
-  color:var(--sui-text-primary); border-top:1px solid var(--sui-border); line-height:1.5; }
-[data-theme="dark"] .d-why{ background: rgba(255,255,255,0.05); }
-.d-why-label{ font-weight:700; font-size:11px; text-transform:uppercase; color:var(--sui-text-muted);
-  display:block; margin-bottom:4px; letter-spacing:0.05em; }
+.d-item { background: var(--sui-bg-elevated); border: 1px solid var(--sui-border); border-radius: var(--sui-radius-md); margin-bottom: 16px; overflow: hidden; }
+.d-row { display: flex; align-items: flex-start; padding: 16px; gap: 16px; }
+.d-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+.d-dot-h { background: var(--sui-error); }
+.d-dot-m { background: var(--sui-warning); }
+.d-dot-s { background: var(--sui-success); }
+.d-dot-l { background: var(--sui-info); opacity: 0.5; } 
+.d-key { font-size: 14px; color: var(--sui-text-secondary); flex-shrink: 0; min-width: 110px; font-weight: 600; }
+.d-val { font-family: var(--sui-font-mono); font-size: 14px; color: var(--sui-blue-active); text-align: right; flex: 1; overflow-wrap: anywhere; line-height: 1.6; }
+.d-why { padding: 12px 16px; background: rgba(0,0,0,0.03); font-size: 13px; color: var(--sui-text-primary); border-top: 1px solid var(--sui-border); line-height: 1.5; }
+.d-why-label { font-weight: 700; font-size: 11px; text-transform: uppercase; color: var(--sui-text-muted); display: block; margin-bottom: 4px; letter-spacing: 0.05em; }
 
 /* Mobile Stack */
-@media (max-width: 480px){
-  .d-row{ flex-direction:column; gap:6px; }
-  .d-key{ min-width:auto; margin-bottom:2px; color:var(--sui-text-muted); font-size:12px;
-    text-transform:uppercase; letter-spacing:0.05em; }
-  .d-val{ text-align:left; width:100%; font-size:15px; }
-  .d-dot{ display:none; }
-  .d-item{ border-left:4px solid transparent; }
-  .d-item.risk-high{ border-left-color: var(--sui-error); }
-  .d-item.risk-med{ border-left-color: var(--sui-warning); }
-  .d-item.risk-safe{ border-left-color: var(--sui-success); }
-  .d-item.risk-low{ border-left-color: var(--sui-border); }
+@media (max-width: 480px) {
+  .d-row { flex-direction: column; gap: 6px; }
+  .d-key { min-width: auto; margin-bottom: 2px; color: var(--sui-text-muted); font-size: 12px; text-transform: uppercase; letter-spacing:0.05em;}
+  .d-val { text-align: left; width: 100%; font-size: 15px; }
+  .d-dot { display: none; } 
+  .d-item { border-left: 4px solid transparent; }
+  .d-item.risk-h { border-left-color: var(--sui-error); }
+  .d-item.risk-m { border-left-color: var(--sui-warning); }
+  .d-item.risk-s { border-left-color: var(--sui-success); }
+  .d-item.risk-l { border-left-color: var(--sui-border); }
 }
 
-.edu-box{
-  background: var(--sui-blue-soft);
-  border: 1px solid var(--sui-blue-focus);
-  padding:16px; border-radius: var(--sui-radius-md);
-  margin-bottom:16px; font-size:14px; color:var(--sui-text-primary);
-  line-height:1.5; display:flex; gap:12px;
-}
-.edu-icon{ font-size:20px; flex-shrink:0; }
-
-.perm-btn{ width:100%; margin-bottom:12px; justify-content:flex-start; border-style:dashed; padding:14px; height:auto; }
+.edu-box { background: var(--sui-blue-soft); border: 1px solid var(--sui-blue-focus); padding: 16px; border-radius: var(--sui-radius-md); margin-bottom: 16px; font-size: 14px; color: var(--sui-text-primary); line-height: 1.5; display: flex; gap: 12px; }
+.edu-icon { font-size: 20px; flex-shrink: 0; margin-top: 0; }
+.perm-btn { width: 100%; margin-bottom: 12px; justify-content: flex-start; border-style: dashed; padding: 14px; height: auto; }
+.perm-btn.granted { border-style: solid; border-color: var(--sui-success); background: var(--sui-success-soft); color: var(--sui-success-strong); }
+.perm-btn.protected { border-style: solid; border-color: var(--sui-success); background: var(--sui-bg-elevated); color: var(--sui-text-secondary); pointer-events: none; }
 
 /* Toast */
-.sui-toast-container{ z-index:2000 !important; top:80px !important; }
-.update-toast{
-  position:fixed; bottom:20px; left:50%;
-  transform: translateX(-50%) translateY(100px);
-  z-index:2000; transition: transform 0.3s ease-out;
-  width:90%; max-width:400px;
-}
-.update-toast.visible{ transform: translateX(-50%) translateY(0); }
-
-/* Behavior demo */
-.touch-demo{
-  position:relative; width:100%; height:220px;
-  background: var(--sui-bg-elevated);
-  border: 1px dashed var(--sui-border);
-  border-radius: var(--sui-radius-md);
-  overflow:hidden;
-}
-.touch-trail{
-  position:absolute; width:14px; height:14px; border-radius:999px;
-  transform: translate(-50%, -50%);
-  opacity:0.85;
-}
+.sui-toast-container { z-index: 2000 !important; top: 80px !important; }
+.update-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); z-index: 2000; transition: transform 0.3s ease-out; width: 90%; max-width: 400px; }
+.update-toast.visible { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 
 <body>
-<div id="update-toast" class="sui-toast sui-toast-info update-toast" role="status" aria-live="polite">
+
+<div id="update-toast" class="sui-toast sui-toast-info update-toast">
   <div class="sui-toast-icon">✨</div>
   <div class="sui-toast-content">
     <div class="sui-toast-title">Update Available</div>
@@ -162,19 +98,16 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; -webk
   <button class="sui-btn sui-btn-sm sui-btn-primary" id="btn-update">Update</button>
 </div>
 
-<div class="app-scroller" id="scroller">
+<div class="app-scroller">
   <div class="action-bar">
-    <button class="btn-rescan" id="global-rescan" aria-label="Rescan privacy tests">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>
+    <button class="btn-rescan" id="global-rescan">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
       Rescan
     </button>
-
     <label class="sui-toggle-label" style="margin:0">
       <span style="font-size:12px;color:var(--sui-text-muted);">☀️/🌙</span>
       <span class="sui-toggle">
-        <input type="checkbox" id="theme-toggle" aria-label="Toggle dark mode">
+        <input type="checkbox" id="theme-toggle">
         <span class="sui-toggle-track"></span>
       </span>
     </label>
@@ -189,12 +122,11 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; -webk
 
     <div class="sui-card sui-mb-4" id="report">
       <div class="sui-text-center"><span class="sui-badge sui-badge-neutral sui-badge-sm">LIVE STATUS</span></div>
-
       <div class="rc-grid">
         <div class="rc-col">
           <div class="rc-label">Security Grade</div>
           <div class="rc-val-big" id="o-grade" style="color:var(--sui-text-muted)">-</div>
-          <div class="rc-sub" id="o-label">Checking…</div>
+          <div class="rc-sub" id="o-label">Checking...</div>
         </div>
         <div class="rc-col">
           <div class="rc-label">Footprint Bits</div>
@@ -202,17 +134,10 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; -webk
           <div class="rc-sub">Uniqueness</div>
         </div>
       </div>
-
-      <div class="rc-meta" id="last-scan">Last scan: —</div>
-
       <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--sui-border)">
         <div class="sui-progress sui-progress-lg" id="score-container">
           <div class="sui-progress-bar" id="score-bar" style="width:0%"></div>
         </div>
-      </div>
-
-      <div style="margin-top:12px;font-size:12px;color:var(--sui-text-muted);line-height:1.4">
-        Grade reflects <b>actionable security</b> only (things you can change). Your footprint shows uniqueness.
       </div>
     </div>
 
@@ -225,10 +150,8 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; -webk
     <div id="sec-footprint"></div>
 
     <div class="sui-footer">
-      <p>Scans run locally. <span id="net-note" style="opacity:.85"></span> Built with Speyer UI.</p>
-      <div class="sui-mt-2">
-        <span class="sui-badge sui-badge-neutral sui-badge-sm sui-badge-outline" id="app-version">v3.6</span>
-      </div>
+      <p>Data stays on device. Built with Speyer UI.</p>
+      <div class="sui-mt-2"><span class="sui-badge sui-badge-neutral sui-badge-sm sui-badge-outline" id="app-version">v3.7</span></div>
     </div>
   </div>
 </div>
@@ -236,73 +159,84 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; -webk
 <canvas id="fp-canvas" width="200" height="50" style="display:none"></canvas>
 
 <script>
-/**
- * Privacy Check — single-file drop-in
- * v3.6
- *
- * NOTE ABOUT VPN CHECK:
- * - To detect “VPN on/off” meaningfully, we optionally fetch your PUBLIC IP from a tiny endpoint (ipify).
- * - This is the only non-local “detection” call (UI assets still load via CDN).
- * - Set ENABLE_PUBLIC_IP_CHECK = false to disable (then VPN toggles may not affect score).
- */
+/* Privacy Check — v3.7 (grade + adblock + webRTC fixes) */
 
-const APP_VERSION = 'v3.6';
+const APP_VERSION = 'v3.7';
 document.getElementById('app-version').innerText = APP_VERSION;
 
-const ENABLE_PUBLIC_IP_CHECK = true;
-const PUBLIC_IP_ENDPOINTS = [
-  'https://api64.ipify.org?format=json',
-  'https://api.ipify.org?format=json'
-];
+const LS_KEY = 'privacy_check_state_v1';
 
-const RiskMap = new Map();      // actionable risks (weighted)
-const FootprintMap = new Map(); // uniqueness contributors
-
-const TestResults = {
-  contacts: null, // 'blocked' | 'exposed'
-  files: null,
-  media: null,
-  gyro: null
-};
+const RiskMap = new Map();      // actionable grade inputs
+const FootprintMap = new Map(); // uniqueness only
 
 const State = {
   isBrave: false,
   isFirefox: false,
   hasAdBlock: false,
-  webRTCSafe: null,     // true | false | null
-  publicIP: null,
-  vpnLikely: null       // true | false | null
+  webRTCSafe: true
 };
 
-const Storage = {
-  get(k, fallback=null) {
-    try { return JSON.parse(localStorage.getItem(k)) ?? fallback; } catch { return fallback; }
-  },
-  set(k, v) {
-    try { localStorage.setItem(k, JSON.stringify(v)); } catch {}
+const Toast = {
+  info(t, m){ try { window.SUI?.toast?.info?.(t, m); } catch(e) {} },
+  success(t, m){ try { window.SUI?.toast?.success?.(t, m); } catch(e) {} },
+  warning(t, m){ try { window.SUI?.toast?.warning?.(t, m); } catch(e) {} },
+  error(t, m){ try { window.SUI?.toast?.error?.(t, m); } catch(e) {} }
+};
+
+function loadState(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e){ return {}; }
+}
+function saveState(obj){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(obj)); } catch(e){}
+}
+
+const Persist = loadState();
+const TestResults = Persist.tests || {
+  contacts: null,
+  files: null
+};
+const ThemeState = Persist.theme || null;
+
+function setTheme(mode){
+  document.documentElement.setAttribute('data-theme', mode);
+  Persist.theme = mode;
+  saveState(Persist);
+}
+
+function isPrivateIPv4(ip){
+  // 10.0.0.0/8
+  if (ip.startsWith('10.')) return true;
+  // 192.168.0.0/16
+  if (ip.startsWith('192.168.')) return true;
+  // 172.16.0.0 - 172.31.255.255
+  if (ip.startsWith('172.')) {
+    const n = parseInt(ip.split('.')[1] || '0', 10);
+    if (n >= 16 && n <= 31) return true;
   }
-};
+  // 169.254.0.0/16 (link-local)
+  if (ip.startsWith('169.254.')) return true;
+  return false;
+}
 
-const RiskWeight = { high: 2, med: 1, safe: 0, low: 0 };
-const SevDot = { high: 'd-dot-h', med: 'd-dot-m', safe: 'd-dot-s', low: 'd-dot-l' };
+const SEV = { none: 0, low: 0.25, medium: 0.5, high: 1 };
 
 const App = {
   layout: {
     guide: ['tips'],
-    actionable: ['prot', 'net', 'api', 'id', 'sen', 'priv'],
+    actionable: ['prot', 'net', 'api', 'priv', 'sen', 'id'],
     footprint: ['hw', 'fp', 'beh', 'font', 'med', 'bat']
   },
 
-  resetUI() {
-    ['sec-guide', 'sec-actionable', 'sec-footprint'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = '';
-    });
-    RiskMap.clear();
-    FootprintMap.clear();
+  resetUI(){
+    document.getElementById('sec-guide').innerHTML = '';
+    document.getElementById('sec-actionable').innerHTML = '';
+    document.getElementById('sec-footprint').innerHTML = '';
   },
 
-  mkSec(id, icon, title, sub, eduText, defaultOpen=false) {
+  mkSec(id, icon, title, sub, eduText) {
     let containerId = 'sec-footprint';
     if (App.layout.actionable.includes(id)) containerId = 'sec-actionable';
     if (App.layout.guide.includes(id)) containerId = 'sec-guide';
@@ -315,20 +249,8 @@ const App = {
 
     const trigger = document.createElement('button');
     trigger.className = 'sui-accordion-trigger';
+    trigger.setAttribute('aria-expanded', 'false');
     trigger.style.padding = '20px';
-    trigger.id = `trigger-${id}`;
-    trigger.setAttribute('aria-expanded', defaultOpen ? 'true' : 'false');
-
-    const panel = document.createElement('div');
-    panel.className = 'sui-accordion-panel';
-    panel.hidden = !defaultOpen;
-    panel.id = `panel-${id}`;
-    panel.style.paddingTop = '12px';
-    panel.setAttribute('role', 'region');
-    panel.setAttribute('aria-labelledby', trigger.id);
-
-    trigger.setAttribute('aria-controls', panel.id);
-
     trigger.innerHTML = `
       <span style="display:flex;align-items:center;gap:var(--sui-space-3);flex:1">
         <span style="font-size:24px">${icon}</span>
@@ -337,10 +259,14 @@ const App = {
           <span style="display:block;font-size:13px;color:var(--sui-text-muted);font-weight:400;margin-top:4px">${sub}</span>
         </span>
       </span>
-      <svg class="sui-accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="6 9 12 15 18 9"></polyline>
-      </svg>
+      <svg class="sui-accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
     `;
+
+    const panel = document.createElement('div');
+    panel.className = 'sui-accordion-panel';
+    panel.hidden = true;
+    panel.id = `panel-${id}`;
+    panel.style.paddingTop = '12px';
 
     if (eduText) {
       const edu = document.createElement('div');
@@ -351,7 +277,7 @@ const App = {
 
     trigger.onclick = () => {
       const exp = trigger.getAttribute('aria-expanded') === 'true';
-      trigger.setAttribute('aria-expanded', (!exp).toString());
+      trigger.setAttribute('aria-expanded', String(!exp));
       panel.hidden = exp;
     };
 
@@ -361,19 +287,29 @@ const App = {
     return panel;
   },
 
-  addItem(panel, category, key, val, why, whyTech, severity='low') {
+  clearRisks(keys) { keys.forEach(k => RiskMap.delete(k)); },
+
+  addItem(panel, category, key, val, why, whyTech, severity = 'none') {
     if (!panel) return;
 
-    const dotClass = SevDot[severity] || 'd-dot-l';
+    let dotClass = 'd-dot-l';
+    let sevVal = 0;
 
     if (category === 'risk') {
-      RiskMap.set(key, RiskWeight[severity] ?? 0);
+      sevVal = SEV[severity] ?? 0;
+      RiskMap.set(key, sevVal);
+      dotClass =
+        severity === 'high' ? 'd-dot-h' :
+        severity === 'medium' ? 'd-dot-m' :
+        severity === 'low' ? 'd-dot-l' :
+        'd-dot-s';
     } else {
       FootprintMap.set(key, 1);
+      dotClass = 'd-dot-l';
     }
 
     const el = document.createElement('div');
-    el.className = `d-item risk-${severity}`;
+    el.className = `d-item risk-${dotClass.replace('d-dot-', '')}`;
 
     const whyBlock = (why || whyTech)
       ? `<div class="d-why">
@@ -386,7 +322,7 @@ const App = {
       <div class="d-row">
         <div class="d-dot ${dotClass}"></div>
         <span class="d-key">${key}</span>
-        <span class="d-val">${val ?? '<span>unavailable</span>'}</span>
+        <span class="d-val">${val || '<span>unavailable</span>'}</span>
       </div>
       ${whyBlock}
     `;
@@ -396,13 +332,29 @@ const App = {
   addBtn(panel, id, label, icon, onClick) {
     if (!panel) return;
 
-    const state = TestResults[id];
-    if (state === 'blocked') {
-      this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'You denied access or the browser blocked it.', '', 'safe');
+    // Ensure tracked
+    if (!(id in TestResults)) TestResults[id] = null;
+
+    const resultState = TestResults[id];
+
+    if (resultState === 'blocked') {
+      this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'You successfully denied access.', '', 'none');
       return;
     }
-    if (state === 'exposed') {
-      this.addItem(panel, 'risk', label, 'Exposed', 'You granted access.', '', 'high');
+
+    if (resultState === 'exposed') {
+      this.addItem(panel, 'risk', label, 'Exposed', 'Access previously granted.', '', 'high');
+      const reset = document.createElement('button');
+      reset.className = 'sui-btn sui-btn-xs sui-btn-ghost';
+      reset.innerText = 'Retest';
+      reset.onclick = () => {
+        TestResults[id] = null;
+        Persist.tests = TestResults;
+        saveState(Persist);
+        Toast.info('Retest', 'Ready.');
+        App.init(); // rebuild cleanly
+      };
+      panel.appendChild(reset);
       return;
     }
 
@@ -413,37 +365,34 @@ const App = {
     btn.onclick = async () => {
       btn.classList.add('sui-btn-loading');
 
-      let result;
       try {
-        result = await onClick(btn, panel);
-      } catch (e) {
-        result = { status: 'blocked', reason: e?.name || 'error' };
-      }
+        const res = await onClick(btn, panel);
 
-      btn.classList.remove('sui-btn-loading');
+        // If user cancelled, do not mark exposed
+        if (res && res.status === 'cancelled') {
+          btn.classList.remove('sui-btn-loading');
+          Toast.info('Cancelled', 'No access granted.');
+          return;
+        }
 
-      if (result?.status === 'cancelled') {
-        SUI?.toast?.info?.('Cancelled', 'No permission change was made.');
-        return;
-      }
+        // exposed
+        TestResults[id] = 'exposed';
+        Persist.tests = TestResults;
+        saveState(Persist);
 
-      if (result?.status === 'unsupported') {
-        btn.remove();
-        this.addItem(panel, 'risk', label, 'Unavailable', 'This API is not supported in your browser.', '', 'low');
+        btn.classList.remove('sui-btn-loading', 'sui-btn-ghost');
+        btn.classList.add('granted');
         this.updateGrade();
-        return;
+      } catch (e) {
+        // blocked/denied OR unsupported — treat as protected
+        TestResults[id] = 'blocked';
+        Persist.tests = TestResults;
+        saveState(Persist);
+
+        btn.remove();
+        this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'Access denied or unavailable.', '', 'none');
+        this.updateGrade();
       }
-
-      TestResults[id] = result?.status || 'blocked';
-      btn.remove();
-
-      if (TestResults[id] === 'blocked') {
-        this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'Access denied or not granted.', '', 'safe');
-      } else {
-        this.addItem(panel, 'risk', label, 'Exposed', 'You granted access.', '', 'high');
-      }
-
-      this.updateGrade();
     };
 
     panel.appendChild(btn);
@@ -454,32 +403,43 @@ const App = {
     const bEl = document.getElementById('score-bar');
     const lEl = document.getElementById('o-label');
     const uEl = document.getElementById('s-uniq');
+    if (!gEl || !bEl) return;
 
-    let totalRisk = 0;
-    RiskMap.forEach(v => totalRisk += v);
+    let total = 0;
+    RiskMap.forEach(v => total += (Number(v) || 0));
 
-    // A more stable grade curve
-    let grade = 'A', pct = 100;
-    if (totalRisk >= 6) { grade = 'F'; pct = 25; }
-    else if (totalRisk >= 4) { grade = 'D'; pct = 50; }
-    else if (totalRisk >= 2) { grade = 'C'; pct = 70; }
-    else if (totalRisk >= 1) { grade = 'B'; pct = 90; }
+    // Smooth thresholds (no Math.ceil jumps)
+    let grade = 'A';
+    if (total >= 4) grade = 'F';
+    else if (total >= 3) grade = 'D';
+    else if (total >= 2) grade = 'C';
+    else if (total >= 1) grade = 'B';
 
-    if (uEl) uEl.innerText = Math.max(1, Math.round(FootprintMap.size * 1.5));
+    const pct =
+      grade === 'A' ? 100 :
+      grade === 'B' ? 90 :
+      grade === 'C' ? 70 :
+      grade === 'D' ? 50 : 25;
 
-    const color = (grade === 'A') ? 'var(--sui-success)'
-               : (grade === 'F') ? 'var(--sui-error)'
-               : 'var(--sui-warning)';
+    if (uEl) uEl.innerText = (FootprintMap.size * 1.5).toFixed(0);
 
-    if (gEl) { gEl.innerText = grade; gEl.style.color = color; }
-    if (bEl) { bEl.style.width = pct + '%'; bEl.style.backgroundColor = color; }
+    const color =
+      grade === 'A' ? 'var(--sui-success)' :
+      grade === 'F' ? 'var(--sui-error)' :
+      'var(--sui-warning)';
+
+    gEl.innerText = grade;
+    gEl.style.color = color;
+    bEl.style.width = pct + '%';
+    bEl.style.backgroundColor = color;
 
     if (lEl) {
       lEl.innerText =
         grade === 'A' ? 'Excellent' :
-        grade === 'B' ? 'Good' :
-        grade === 'C' ? 'Improvements Needed' :
-        grade === 'D' ? 'High Risk' : 'Critical Risks';
+        grade === 'B' ? 'Good (Minor Fixes)' :
+        grade === 'C' ? 'Needs Work' :
+        grade === 'D' ? 'High Risk Setup' :
+        'Critical Risks';
     }
 
     this.updateGuide();
@@ -489,34 +449,34 @@ const App = {
     const panel = document.getElementById('panel-tips');
     if (!panel) return;
 
-    panel.innerHTML = '';
+    const tips = [];
+    const ua = navigator.userAgent || '';
+    State.isBrave = navigator.brave !== undefined;
+    State.isFirefox = ua.toLowerCase().includes('firefox');
 
+    if (State.isBrave || State.isFirefox) {
+      tips.push({ s: 'success', t: 'Browser: Safer Choice', d: 'You are using a privacy-focused browser.' });
+    } else {
+      tips.push({ s: 'warning', t: 'Browser: Standard Tracking', d: 'For stronger default privacy, consider <b>Brave</b> or <b>Firefox</b>.' });
+    }
+
+    if (State.hasAdBlock) {
+      tips.push({ s: 'success', t: 'AdBlock: Active', d: 'You are blocking many tracking scripts.' });
+    } else {
+      tips.push({ s: 'error', t: 'AdBlock: Missing', d: '<b>Recommended:</b> Install <b>uBlock Origin</b> (or an equivalent blocker).' });
+    }
+
+    if (State.webRTCSafe) {
+      tips.push({ s: 'success', t: 'WebRTC: No Public Leak Detected', d: 'This offline test did not detect a public WebRTC IP exposure.' });
+    } else {
+      tips.push({ s: 'warning', t: 'WebRTC: Possible Exposure', d: 'WebRTC may be exposing an address. Consider disabling WebRTC or tightening browser privacy settings.' });
+    }
+
+    panel.innerHTML = '';
     const edu = document.createElement('div');
     edu.className = 'edu-box';
     edu.innerHTML = `<div class="edu-icon">ℹ️</div><div>We analyzed your settings. Here is your personalized to-do list.</div>`;
     panel.appendChild(edu);
-
-    const ua = navigator.userAgent.toLowerCase();
-    State.isBrave = (navigator.brave !== undefined);
-    State.isFirefox = ua.includes('firefox');
-
-    const tips = [];
-
-    if (State.isBrave || State.isFirefox) tips.push({ s:'success', t:'Browser: Safer', d:'You are using a more privacy-forward browser.' });
-    else tips.push({ s:'warning', t:'Browser: Standard', d:'Consider <b>Brave</b> or <b>Firefox</b> to reduce passive tracking.' });
-
-    if (State.hasAdBlock) tips.push({ s:'success', t:'Ad Blocking: Active', d:'You are blocking many invisible trackers.' });
-    else tips.push({ s:'error', t:'Ad Blocking: Missing', d:'Install <b>uBlock Origin</b> (desktop) or enable stronger tracker blocking.' });
-
-    if (State.webRTCSafe === true) tips.push({ s:'success', t:'WebRTC: Safer', d:'No local/private IP exposure detected via WebRTC.' });
-    else if (State.webRTCSafe === false) tips.push({ s:'warning', t:'WebRTC: Leaking', d:'A local/private IP was exposed via WebRTC candidates.' });
-    else tips.push({ s:'warning', t:'WebRTC: Unknown', d:'WebRTC candidate collection was blocked or inconclusive.' });
-
-    if (ENABLE_PUBLIC_IP_CHECK) {
-      if (State.vpnLikely === true) tips.push({ s:'success', t:'VPN: Likely Active', d:'Your public IP changed since the last scan (often indicates VPN/proxy).' });
-      else if (State.vpnLikely === false) tips.push({ s:'warning', t:'VPN: Not Detected', d:'Public IP did not change since last scan. If you toggled VPN, verify it’s actually on.' });
-      else tips.push({ s:'warning', t:'VPN: Unknown', d:'Public IP check was unavailable.' });
-    }
 
     tips.forEach(t => {
       const div = document.createElement('div');
@@ -526,286 +486,274 @@ const App = {
     });
   },
 
-  setLastScan() {
-    const el = document.getElementById('last-scan');
-    if (!el) return;
-    const now = new Date();
-    el.innerText = `Last scan: ${now.toLocaleString()}`;
+  initTheme() {
+    const toggle = document.getElementById('theme-toggle');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const mode = ThemeState || (prefersDark ? 'dark' : 'light');
+    setTheme(mode);
+    toggle.checked = (mode === 'dark');
+    toggle.addEventListener('change', (e) => setTheme(e.target.checked ? 'dark' : 'light'));
   },
 
-  // ───────────────────────── SCANNERS ─────────────────────────
+  init() {
+    // Prevent duplicate sections if init is called again
+    this.resetUI();
 
-  async scanProtection(p) {
-    if (!p) return;
-    p.innerHTML = '';
+    this.initTheme();
 
-    // GPC
-    const gpc = !!navigator.globalPrivacyControl;
-    this.addItem(
-      p, 'risk', 'GPC Signal',
-      gpc ? 'On' : 'Off',
-      'Global Privacy Control signals “Do Not Sell / Share”.',
-      gpc ? 'Good: some sites honor it.' : 'Off: you’re not signaling a universal opt-out.',
-      gpc ? 'safe' : 'med'
-    );
+    this.mkSec('tips', '🎓', 'Smart Action Plan', 'Based on your results',
+      'Quick, practical fixes first. Your grade is based on the actionable security checks.');
 
-    // Do Not Track (legacy but educational)
-    const dnt = (navigator.doNotTrack === '1' || window.doNotTrack === '1');
-    this.addItem(
-      p, 'risk', 'Do Not Track',
-      dnt ? 'On' : 'Off',
-      'A legacy opt-out header.',
-      dnt ? 'Low impact, but harmless to enable.' : 'Off: not sending this header.',
-      dnt ? 'low' : 'low'
-    );
+    this.mkSec('prot', '🛡️', 'Protection Check', 'AdBlock, Cookies, GPC', 'Your first line of defense.');
+    this.scanProtection(document.getElementById('panel-prot'));
 
-    // Cookies enabled = tracking surface
-    const cookiesEnabled = !!navigator.cookieEnabled;
-    this.addItem(
-      p, 'risk', 'Cookies',
-      cookiesEnabled ? 'Enabled' : 'Blocked',
-      'Cookies are a major tracking mechanism.',
-      cookiesEnabled ? 'Enabled: increases tracking surface.' : 'Blocked: reduces cookie-based tracking.',
-      cookiesEnabled ? 'med' : 'safe'
-    );
+    this.mkSec('api', '🚦', 'Permissions API', 'Auto-detected settings', 'Permissions you’ve already configured.');
+    this.scanPermissions(document.getElementById('panel-api'));
 
-    // Adblock detection (FIXED: bait has size + computed style check)
-    const bait = document.createElement('div');
-    bait.className = 'adsbox ad-banner adunit adsbygoogle';
-    bait.style.position = 'absolute';
-    bait.style.left = '-9999px';
-    bait.style.top = '-9999px';
-    bait.style.width = '10px';
-    bait.style.height = '10px';
-    bait.style.pointerEvents = 'none';
-    document.body.appendChild(bait);
+    this.mkSec('net', '🌐', 'Network Exposure', 'WebRTC, connection info', 'What sites can infer about your network.');
+    this.scanNetwork(document.getElementById('panel-net'));
 
-    await new Promise(r => setTimeout(r, 120));
+    this.mkSec('id', '📱', 'Identity', 'Browser, Timezone', 'Software identity signals.');
+    this.scanIdentity(document.getElementById('panel-id'));
 
-    const cs = window.getComputedStyle(bait);
-    const blocked = (cs.display === 'none' || cs.visibility === 'hidden' || bait.offsetHeight === 0 || bait.offsetWidth === 0);
+    // Footprint sections (not graded)
+    this.mkSec('hw', '🔧', 'Hardware Specs', 'Screen, CPU, RAM', 'Device properties (uniqueness, not your grade).');
+    this.scanHardware(document.getElementById('panel-hw'));
 
-    State.hasAdBlock = blocked;
-    this.addItem(
-      p, 'risk', 'Ad Blocker',
-      blocked ? 'Active' : 'Missing',
-      blocked ? 'Great: many tracking scripts are blocked.' : 'Trackers can run freely.',
-      blocked ? 'Lower risk of third-party tracking.' : 'Install uBlock Origin (desktop) or enable stronger browser protections.',
-      blocked ? 'safe' : 'high'
-    );
+    this.mkSec('fp', '👁', 'Invisible Fingerprints', 'Canvas', 'Rendering quirks trackers can use.');
+    this.scanFP(document.getElementById('panel-fp'));
 
-    bait.remove();
+    this.mkSec('priv', '🔐', 'Sensitive Access', 'Contacts, Files', 'Manual checks: only runs if you click.');
+    this.scanSensitive(document.getElementById('panel-priv'));
+
+    this.mkSec('sen', '📡', 'Sensors & Motion', 'Motion events', 'Manual check: only runs if you click.');
+    this.scanSensors(document.getElementById('panel-sen'));
+
+    this.mkSec('med', '📷', 'Media Devices', 'Camera, Mic labels', 'Hardware device list (labels may be hidden).');
+    this.scanMedia(document.getElementById('panel-med'));
+
+    this.mkSec('bat', '🔋', 'Battery Status', 'Level, Charging', 'Short-term tracking identifier.');
+    this.scanBattery(document.getElementById('panel-bat'));
+
+    document.getElementById('global-rescan').onclick = () => {
+      Toast.success('Rescanning', 'Updating analysis...');
+      this.scanProtection(document.getElementById('panel-prot'));
+      this.scanPermissions(document.getElementById('panel-api'));
+      this.scanNetwork(document.getElementById('panel-net'));
+      this.scanIdentity(document.getElementById('panel-id'));
+    };
+
     this.updateGrade();
   },
 
   async scanPermissions(p) {
     if (!p) return;
     p.innerHTML = '';
+    this.clearRisks(['Geo Permission', 'Notif Permission', 'Camera Permission', 'Mic Permission']);
 
-    const edu = document.createElement('div');
-    edu.className = 'edu-box';
-    edu.innerHTML = `<div class="edu-icon">ℹ️</div><div>These permission states are usually <b>per-site</b> (for this page’s origin), not global browser settings.</div>`;
-    p.appendChild(edu);
-
-    if (!navigator.permissions?.query) {
-      this.addItem(p, 'risk', 'Permissions API', 'Unavailable', 'Your browser does not expose permission states via the Permissions API.', '', 'low');
-      this.updateGrade();
+    if (!('permissions' in navigator) || !navigator.permissions?.query) {
+      this.addItem(p, 'info', 'Permissions API', 'Unavailable', 'This browser does not expose permission states via API.');
       return;
     }
 
-    const checks = [
-      { name: 'geolocation', label: 'Geo Permission', grantedSev: 'med' },
-      { name: 'notifications', label: 'Notif Permission', grantedSev: 'med' },
-      { name: 'camera', label: 'Camera Permission', grantedSev: 'high' },
-      { name: 'microphone', label: 'Mic Permission', grantedSev: 'high' }
-    ];
-
-    for (const c of checks) {
+    const check = async (name, label, severityIfGranted) => {
       try {
-        const result = await navigator.permissions.query({ name: c.name });
-        const state = result.state; // granted/denied/prompt
-        const val = state.toUpperCase() + (state === 'granted' ? ' (Exposed)' : state === 'denied' ? ' (Protected)' : '');
-        const sev = (state === 'granted') ? c.grantedSev : (state === 'denied') ? 'safe' : 'low';
+        const result = await navigator.permissions.query({ name });
+        const state = result.state; // 'granted', 'denied', 'prompt'
+        let sev = 'none';
+        let val = state.toUpperCase();
+
+        if (state === 'granted') { val += ' (Exposed)'; sev = severityIfGranted; }
+        if (state === 'denied') { val += ' (Protected)'; sev = 'none'; }
+        if (state === 'prompt') { val += ' (Not Granted)'; sev = 'none'; }
 
         this.addItem(
-          p, 'risk', c.label, val,
-          'Permission state for this site.',
-          state === 'granted' ? 'Granted means a page can access this feature without prompting again.' : 'Prompt/Denied reduces passive access.',
+          p,
+          'risk',
+          label,
+          val,
+          'Permission state detected by your browser.',
+          '',
           sev
         );
       } catch (e) {
-        // some browsers throw on certain names
+        this.addItem(p, 'info', label, 'Not Supported', 'This permission type isn’t exposed in this browser.');
       }
-    }
+    };
+
+    await check('geolocation', 'Geo Permission', 'high');
+    await check('notifications', 'Notif Permission', 'medium');
+    await check('camera', 'Camera Permission', 'high');
+    await check('microphone', 'Mic Permission', 'high');
 
     this.updateGrade();
   },
 
-  async fetchPublicIP() {
-    if (!ENABLE_PUBLIC_IP_CHECK) return null;
+  async scanProtection(p) {
+    if (!p) return;
+    p.innerHTML = '';
+    this.clearRisks(['GPC Signal', 'Ad Blocker', 'Cookies']);
 
-    for (const url of PUBLIC_IP_ENDPOINTS) {
-      try {
-        const res = await fetch(url, { cache: 'no-store' });
-        const json = await res.json();
-        if (json?.ip) return json.ip;
-      } catch (e) {}
-    }
-    return null;
-  },
+    const gpc = !!navigator.globalPrivacyControl;
+    this.addItem(
+      p,
+      'risk',
+      'GPC Signal',
+      gpc ? 'On' : 'Off',
+      'Global Privacy Control is a “Do Not Sell/Share” signal supported by many browsers and sites.',
+      '',
+      gpc ? 'none' : 'medium'
+    );
 
-  isPrivateIP(ip) {
-    if (!ip) return false;
-    // IPv4 RFC1918 ranges
-    if (ip.startsWith('10.')) return true;
-    if (ip.startsWith('192.168.')) return true;
-    const m = ip.match(/^172\.(\d+)\./);
-    if (m) {
-      const n = parseInt(m[1], 10);
-      return n >= 16 && n <= 31;
-    }
-    // localhost
-    if (ip === '127.0.0.1') return true;
-    return false;
+    const cookiesOn = !!navigator.cookieEnabled;
+    this.addItem(
+      p,
+      'risk',
+      'Cookies',
+      cookiesOn ? 'Enabled' : 'Blocked',
+      'Cookies can be used for cross-site tracking unless blocked or partitioned.',
+      '',
+      cookiesOn ? 'medium' : 'none'
+    );
+
+    // Reliable adblock detection bait
+    const bait = document.createElement('div');
+    bait.className = 'adsbox ad ads-banner adsbygoogle ad-placement';
+    bait.style.cssText = 'width:12px;height:12px;position:absolute;left:-9999px;top:0;background:#f00;';
+    bait.innerHTML = '&nbsp;';
+    document.body.appendChild(bait);
+
+    await new Promise(r => setTimeout(r, 80));
+
+    const cs = window.getComputedStyle(bait);
+    const blocked =
+      cs.display === 'none' ||
+      cs.visibility === 'hidden' ||
+      bait.offsetParent === null ||
+      bait.offsetHeight === 0;
+
+    bait.remove();
+
+    State.hasAdBlock = blocked;
+
+    this.addItem(
+      p,
+      'risk',
+      'Ad Blocker',
+      blocked ? 'Active' : 'Missing',
+      blocked ? 'Great: many tracking scripts will be blocked.' : 'Trackers and ad scripts will load normally.',
+      blocked ? '' : 'Installing an ad blocker is one of the highest-impact privacy wins.',
+      blocked ? 'none' : 'high'
+    );
+
+    this.updateGrade();
   },
 
   async scanNetwork(p) {
     if (!p) return;
     p.innerHTML = '';
+    this.clearRisks(['WebRTC Public Exposure']);
 
-    // Public IP / “VPN likely” heuristic (optional)
-    if (ENABLE_PUBLIC_IP_CHECK) {
-      document.getElementById('net-note').innerText = 'Public IP check enabled (can be disabled in code).';
+    const h = document.createElement('div');
+    h.innerHTML = `<button class="sui-btn sui-btn-sm sui-btn-secondary" style="width:100%;margin-bottom:16px;padding:12px">↻ Refresh Network</button>`;
+    h.onclick = () => this.scanNetwork(p);
+    p.appendChild(h);
 
-      const prevIP = Storage.get('publicIP_last', null);
-      const ip = await this.fetchPublicIP();
-      State.publicIP = ip;
-
-      if (ip) {
-        const changed = (!!prevIP && prevIP !== ip);
-        State.vpnLikely = changed ? true : false;
-
-        this.addItem(
-          p, 'risk', 'Public IP',
-          ip,
-          'Every website can see your public IP.',
-          'VPNs typically change your public IP. This check is a simple indicator, not a guarantee.',
-          'low'
-        );
-
-        this.addItem(
-          p, 'risk', 'VPN / Proxy Indicator',
-          changed ? 'Likely Active (IP changed)' : (prevIP ? 'Not Detected (no change)' : 'Unknown (first scan)'),
-          'Heuristic based on IP change.',
-          changed ? 'Good sign: public IP changed since last scan.' : 'If you toggled VPN and nothing changed, verify the VPN is truly enabled.',
-          changed ? 'safe' : (prevIP ? 'med' : 'low')
-        );
-
-        Storage.set('publicIP_last', ip);
-      } else {
-        State.vpnLikely = null;
-        this.addItem(
-          p, 'risk', 'Public IP',
-          'Unavailable',
-          'Public IP endpoint blocked/unreachable.',
-          'Some networks block external checks. VPN indicator will be unavailable.',
-          'low'
-        );
-      }
-    } else {
-      document.getElementById('net-note').innerText = '';
-      this.addItem(p, 'risk', 'Public IP', 'Disabled', 'Public IP checks are turned off in code.', '', 'low');
+    if (navigator.connection) {
+      this.addItem(p, 'info', 'Connection', navigator.connection.effectiveType || 'unknown', 'Approximate connection type.');
     }
 
-    // Connection info (footprint)
-    if (navigator.connection?.effectiveType) {
-      this.addItem(p, 'info', 'Connection', navigator.connection.effectiveType, 'Network hint: fast/slow type.', '', 'low');
-    }
-
-    // WebRTC candidate leak check (IMPROVED: use STUN + parse candidate types)
-    let foundPrivate = null;
-    let foundPublic = null;
-    let foundAny = false;
-
-    const addCandidate = (candidateStr) => {
-      foundAny = true;
-      // Find any IPv4 in candidate
-      const m = candidateStr.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
-      if (!m) return;
-
-      const ip = m[0];
-      const isPriv = App.isPrivateIP(ip);
-
-      // candidate type: host/srflx/relay
-      const typeMatch = candidateStr.match(/ typ (\w+)/);
-      const typ = typeMatch ? typeMatch[1] : 'unknown';
-
-      if (isPriv && !foundPrivate) foundPrivate = { ip, typ };
-      if (!isPriv && !foundPublic) foundPublic = { ip, typ };
-    };
-
+    // Offline-only WebRTC test (no STUN servers)
+    // This cannot reliably detect "VPN on/off". It can only show local candidate behavior.
     try {
-      const pc = new RTCPeerConnection({
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-      });
+      const pc = new RTCPeerConnection({ iceServers: [] });
       pc.createDataChannel('x');
 
+      const found = { ips: new Set(), mdns: new Set() };
+
       pc.onicecandidate = (e) => {
-        if (e.candidate?.candidate) addCandidate(e.candidate.candidate);
+        if (!e.candidate || !e.candidate.candidate) return;
+        const cand = e.candidate.candidate;
+        const parts = cand.split(' ');
+        const addr = parts[4] || '';
+
+        if (/^\d{1,3}(\.\d{1,3}){3}$/.test(addr)) found.ips.add(addr);
+        if (addr.endsWith('.local')) found.mdns.add(addr);
       };
 
-      const offer = await pc.createOffer({ offerToReceiveAudio: false, offerToReceiveVideo: false });
+      const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
 
-      await new Promise(r => setTimeout(r, 1200));
+      await new Promise(r => setTimeout(r, 900));
       pc.close();
 
-      if (foundPrivate) {
-        State.webRTCSafe = false;
-        this.addItem(
-          p, 'risk', 'WebRTC Local Address',
-          `${foundPrivate.ip} (${foundPrivate.typ})`,
-          'A local/private IP was exposed via WebRTC.',
-          'This can weaken VPN privacy and help fingerprint your network.',
-          'high'
-        );
-      } else if (foundAny) {
+      // Show what we saw
+      if (found.ips.size) {
+        const ips = Array.from(found.ips).slice(0, 5);
+        const anyPublic = ips.some(ip => !isPrivateIPv4(ip));
+        const anyPrivate = ips.some(ip => isPrivateIPv4(ip));
+
+        if (anyPublic) {
+          State.webRTCSafe = false;
+          this.addItem(
+            p,
+            'risk',
+            'WebRTC Public Exposure',
+            ips.join(', '),
+            'A public IP address was observed in WebRTC candidates.',
+            'This can be used to infer your network identity. Consider disabling WebRTC or tightening privacy settings.',
+            'high'
+          );
+        } else if (anyPrivate) {
+          State.webRTCSafe = true;
+          this.addItem(
+            p,
+            'info',
+            'WebRTC Candidates',
+            ips.join(', '),
+            'Local/private network addresses are commonly visible via WebRTC.',
+            'This offline test does not contact external servers, so it cannot confirm VPN status.',
+          );
+        }
+      } else if (found.mdns.size) {
         State.webRTCSafe = true;
         this.addItem(
-          p, 'risk', 'WebRTC Local Address',
-          'Hidden (no private IP found)',
-          'No private IP was exposed via WebRTC candidates.',
-          'Modern browsers may use mDNS or block host candidates.',
-          'safe'
+          p,
+          'info',
+          'WebRTC Candidates',
+          'mDNS Hostnames',
+          'This browser is using mDNS hostnames instead of raw local IPs.',
+          'That’s generally better for local-IP privacy.'
         );
       } else {
-        State.webRTCSafe = null;
+        State.webRTCSafe = true;
         this.addItem(
-          p, 'risk', 'WebRTC Local Address',
-          'Unknown',
-          'No candidates were collected (blocked/inconclusive).',
-          'Some browsers restrict WebRTC exposure by default.',
-          'low'
+          p,
+          'info',
+          'WebRTC',
+          'No candidates observed',
+          'Some browsers limit candidate visibility in certain contexts.',
+          'This is not a definitive “VPN check.”'
         );
       }
 
-      if (foundPublic) {
-        this.addItem(
-          p, 'info', 'WebRTC Public Candidate',
-          `${foundPublic.ip} (${foundPublic.typ})`,
-          'WebRTC can reveal a public-facing IP candidate.',
-          'Not always a “leak”, but still a network identifier.',
-          'low'
-        );
-      }
-    } catch (e) {
-      State.webRTCSafe = null;
+      // Explicit expectation-setter
       this.addItem(
-        p, 'risk', 'WebRTC Local Address',
+        p,
+        'info',
+        'VPN Status',
+        'Not measurable offline',
+        'Detecting VPN on/off reliably requires checking your public IP via an external service (this tool does not do that).'
+      );
+
+    } catch (e) {
+      State.webRTCSafe = true;
+      this.addItem(
+        p,
+        'info',
+        'WebRTC',
         'Unavailable',
-        'WebRTC check failed.',
-        'Some environments block WebRTC.',
-        'low'
+        'WebRTC APIs are blocked or unsupported in this browser.'
       );
     }
 
@@ -815,32 +763,34 @@ const App = {
   scanIdentity(p) {
     if (!p) return;
     p.innerHTML = '';
+    this.clearRisks(['Browser Privacy']);
 
-    const ua = navigator.userAgent;
-    const uaLower = ua.toLowerCase();
-    State.isBrave = (navigator.brave !== undefined);
-    State.isFirefox = uaLower.includes('firefox');
-
-    const isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor) && !State.isBrave;
+    const ua = navigator.userAgent || '';
+    State.isBrave = navigator.brave !== undefined;
+    State.isFirefox = ua.toLowerCase().includes('firefox');
+    const isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor || '') && !State.isBrave;
 
     this.addItem(
-      p, 'risk', 'Browser Privacy',
-      isChrome ? 'Standard Chrome (Higher Tracking Risk)' : (State.isBrave || State.isFirefox ? 'Privacy-Forward Browser' : 'Mixed'),
-      'Browser choice impacts tracking exposure.',
-      isChrome ? 'Chrome defaults can be more tracking-friendly. Consider Brave/Firefox.' : 'Better defaults and stronger privacy controls.',
-      isChrome ? 'med' : 'safe'
+      p,
+      'risk',
+      'Browser Privacy',
+      isChrome ? 'Standard Chrome' : 'Privacy-Focused (Detected)',
+      isChrome ? 'Chrome defaults are less privacy-protective.' : 'A privacy-focused browser was detected.',
+      isChrome ? 'Brave/Firefox tend to reduce passive tracking by default.' : '',
+      isChrome ? 'medium' : 'none'
     );
 
-    this.addItem(p, 'info', 'User Agent', ua, 'Browser “ID card”. Often used in fingerprints.', '', 'low');
-    this.addItem(p, 'info', 'Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone, 'Timezone narrows location and fingerprint uniqueness.', '', 'low');
+    this.addItem(p, 'info', 'User Agent', ua, 'Browser “ID card” (often unique).');
+    this.addItem(p, 'info', 'Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown');
   },
 
   scanHardware(p) {
     if (!p) return;
     p.innerHTML = '';
-    this.addItem(p, 'info', 'Screen', `${screen.width}×${screen.height}`, 'Screen size helps identify device model.', '', 'low');
-    this.addItem(p, 'info', 'Cores', navigator.hardwareConcurrency ?? 'unknown', 'CPU cores can fingerprint hardware tier.', '', 'low');
-    this.addItem(p, 'info', 'RAM', navigator.deviceMemory ? `${navigator.deviceMemory} GB` : 'unknown', 'Approx RAM is a fingerprint clue.', '', 'low');
+    this.addItem(p, 'info', 'Screen', `${screen.width}x${screen.height}`);
+    this.addItem(p, 'info', 'Cores', navigator.hardwareConcurrency || 'unknown');
+    this.addItem(p, 'info', 'RAM', navigator.deviceMemory ? `${navigator.deviceMemory} GB` : 'unknown');
+    this.updateGrade();
   },
 
   scanFP(p) {
@@ -848,82 +798,75 @@ const App = {
     p.innerHTML = '';
     try {
       const cv = document.getElementById('fp-canvas');
-      const ctx = cv.getContext('2d', { willReadFrequently: true });
-
-      ctx.clearRect(0,0,cv.width,cv.height);
-      ctx.textBaseline = 'top';
-      ctx.font = '14px Arial';
-      ctx.fillStyle = '#f60';
-      ctx.fillRect(125, 1, 62, 20);
-      ctx.fillStyle = '#069';
-      ctx.fillText('Privacy!', 2, 15);
-
+      const ctx = cv.getContext('2d');
+      ctx.textBaseline='top'; ctx.font='14px Arial';
+      ctx.fillStyle='#f60'; ctx.fillRect(125,1,62,20);
+      ctx.fillStyle='#069'; ctx.fillText('Privacy!',2,15);
       const s = cv.toDataURL();
-      let h = 0x811c9dc5; // FNV-like
-      for (let i = 0; i < s.length; i++) {
-        h ^= s.charCodeAt(i);
-        h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
-      }
-      const hash = (h >>> 0).toString(16).toUpperCase();
-
-      this.addItem(p, 'info', 'Canvas ID', hash, 'Canvas rendering differs per device/GPU.', 'Used for fingerprinting that can survive cookie clears.', 'low');
-    } catch (e) {
-      this.addItem(p, 'info', 'Canvas ID', 'Unavailable', 'Canvas fingerprint test failed.', '', 'low');
-    }
+      let h = 0x811c9dc5;
+      for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h += (h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24); }
+      const hash = (h>>>0).toString(16).toUpperCase();
+      this.addItem(p, 'info', 'Canvas ID', hash, 'A rendering-based fingerprint signal.');
+    } catch(e){}
+    this.updateGrade();
   },
 
   scanSensors(p) {
     if (!p) return;
     p.innerHTML = '';
 
-    this.addBtn(p, 'gyro', 'Test Gyroscope / Motion', '📡', async () => {
-      // iOS requires explicit permission
+    this.addBtn(p, 'motion', 'Test Motion / Gyroscope', '📡', async () => {
+      // iOS requires permission for motion
       if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-        const perm = await DeviceMotionEvent.requestPermission();
-        if (perm !== 'granted') return { status: 'blocked' };
+        const resp = await DeviceMotionEvent.requestPermission();
+        if (resp !== 'granted') {
+          this.addItem(p, 'risk', 'Motion', 'Protected (Denied)', 'Motion permission was denied.', '', 'none');
+          this.updateGrade();
+          return { status: 'cancelled' };
+        }
       }
 
-      return await new Promise((resolve) => {
-        let gotEvent = false;
+      let gotEvent = false;
 
-        const handler = (e) => {
-          gotEvent = true;
-          window.removeEventListener('devicemotion', handler);
-          resolve({ status: 'exposed' });
-        };
+      const handler = (e) => {
+        gotEvent = true;
+      };
 
-        window.addEventListener('devicemotion', handler, { once: true });
+      window.addEventListener('devicemotion', handler, { once: true });
 
-        setTimeout(() => {
-          if (!gotEvent) {
-            window.removeEventListener('devicemotion', handler);
-            resolve({ status: 'blocked' });
-          }
-        }, 1200);
-      });
+      await new Promise(r => setTimeout(r, 900));
+      window.removeEventListener('devicemotion', handler);
+
+      if (gotEvent) {
+        this.addItem(p, 'risk', 'Motion', 'Exposed', 'Sites can read device motion signals when allowed.', '', 'medium');
+        this.updateGrade();
+        return { status: 'exposed' };
+      } else {
+        this.addItem(p, 'risk', 'Motion', 'Protected / Unavailable', 'No motion events observed.', 'This may be blocked by browser policy or device settings.', 'none');
+        this.updateGrade();
+        return { status: 'cancelled' };
+      }
     });
-
-    this.addItem(
-      p, 'risk', 'Motion Risk',
-      'Permission-gated',
-      'Motion sensors can add behavioral and device fingerprint data.',
-      'If granted, pages can observe device tilt/movement.',
-      'low'
-    );
   },
 
   scanSensitive(p) {
     if (!p) return;
     p.innerHTML = '';
+    this.clearRisks(['Contacts', 'Files']);
 
     this.addBtn(p, 'contacts', 'Test Contacts', '👥', async () => {
-      if (!('contacts' in navigator) || !navigator.contacts?.select) return { status: 'unsupported' };
+      if (!navigator.contacts || !navigator.contacts.select) throw new Error('Contacts API not supported');
+
       try {
         await navigator.contacts.select(['name'], { multiple: true });
+        this.addItem(p, 'risk', 'Contacts', 'Exposed', 'You granted access to contacts.', '', 'high');
+        this.updateGrade();
         return { status: 'exposed' };
       } catch (e) {
-        if (e?.name === 'AbortError') return { status: 'cancelled' };
-        return { status: 'blocked' };
+        if (e && (e.name === 'AbortError' || String(e).toLowerCase().includes('abort'))) {
+          return { status: 'cancelled' };
+        }
+        throw e;
       }
     });
 
@@ -931,111 +874,34 @@ const App = {
       try {
         if ('showOpenFilePicker' in window) {
           await window.showOpenFilePicker();
-          return { status: 'exposed' };
-        }
-        // fallback input
-        return await new Promise((resolve) => {
+        } else {
+          // Fallback: input picker (does not grant continuous access)
           const i = document.createElement('input');
           i.type = 'file';
-          i.onchange = () => resolve({ status: 'exposed' });
-          i.oncancel = () => resolve({ status: 'cancelled' });
           i.click();
-          setTimeout(() => resolve({ status: 'cancelled' }), 2500);
-        });
+        }
+        this.addItem(p, 'risk', 'Files', 'Exposed', 'You opened a file picker (user-initiated access).', '', 'medium');
+        this.updateGrade();
+        return { status: 'exposed' };
       } catch (e) {
-        if (e?.name === 'AbortError') return { status: 'cancelled' };
-        return { status: 'blocked' };
+        if (e && (e.name === 'AbortError' || String(e).toLowerCase().includes('abort'))) {
+          return { status: 'cancelled' };
+        }
+        throw e;
       }
     });
-
-    this.addItem(
-      p, 'risk', 'Sensitive APIs',
-      'Manual tests',
-      'These require user interaction.',
-      'Canceling a prompt is not the same as being protected permanently.',
-      'low'
-    );
   },
 
   scanMedia(p) {
     if (!p) return;
     p.innerHTML = '';
-
-    this.addBtn(p, 'media', 'Scan Media Devices', '📷', async () => {
-      if (!navigator.mediaDevices?.enumerateDevices) return { status: 'unsupported' };
-      try {
-        const devs = await navigator.mediaDevices.enumerateDevices();
-        // Labels are often blank until permission granted
-        const labelsVisible = devs.some(d => (d.label || '').trim().length > 0);
-
-        this.addItem(
-          p, 'info', 'Device Labels',
-          labelsVisible ? 'Visible' : 'Hidden',
-          'Mic/camera labels are more identifying when exposed.',
-          labelsVisible ? 'Labels visible (likely permission granted earlier).' : 'Labels hidden until permission granted.',
-          labelsVisible ? 'med' : 'low'
-        );
-
-        devs.slice(0, 10).forEach(d => {
-          this.addItem(p, 'info', d.kind, d.label || 'Hidden', 'Device inventory fingerprint.', '', 'low');
-        });
-
-        return { status: labelsVisible ? 'exposed' : 'blocked' };
-      } catch (e) {
-        if (e?.name === 'NotAllowedError') return { status: 'blocked' };
-        if (e?.name === 'AbortError') return { status: 'cancelled' };
-        return { status: 'blocked' };
-      }
+    this.addBtn(p, 'media', 'Scan Devices', '📷', async () => {
+      if (!navigator.mediaDevices?.enumerateDevices) throw new Error('MediaDevices not supported');
+      const devs = await navigator.mediaDevices.enumerateDevices();
+      devs.forEach(d => this.addItem(p, 'info', d.kind, d.label || 'Hidden', 'Device labels are often hidden until permission is granted.'));
+      this.updateGrade();
+      return { status: 'exposed' };
     });
-  },
-
-  scanBehavior(p) {
-    if (!p) return;
-    p.innerHTML = '';
-
-    const demo = document.createElement('div');
-    demo.className = 'touch-demo';
-    demo.innerHTML = `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--sui-text-muted);font-size:14px;text-align:center">👆 Move / Touch Here</div>`;
-    p.appendChild(demo);
-
-    const draw = (x, y) => {
-      const dot = document.createElement('div');
-      dot.className = 'touch-trail';
-      dot.style.left = x + 'px';
-      dot.style.top = y + 'px';
-      dot.style.background = 'var(--sui-blue-primary)';
-      demo.appendChild(dot);
-      setTimeout(() => dot.remove(), 500);
-    };
-
-    demo.addEventListener('mousemove', e => draw(e.offsetX, e.offsetY));
-    demo.addEventListener('touchmove', e => {
-      e.preventDefault();
-      const rect = demo.getBoundingClientRect();
-      const touch = e.touches[0];
-      draw(touch.clientX - rect.left, touch.clientY - rect.top);
-    }, { passive: false });
-
-    this.addItem(
-      p, 'info', 'Behavior Demo',
-      'Interactive',
-      'Mouse/touch movement can be recorded and analyzed.',
-      'Some systems use this for biometrics / bot detection.',
-      'low'
-    );
-  },
-
-  scanFonts(p) {
-    if (!p) return;
-    p.innerHTML = '';
-    // simple educational stub (full font fingerprinting requires measurement tricks)
-    this.addItem(
-      p, 'info', 'Font Fingerprint',
-      'Basic',
-      'Installed fonts can uniquely identify a device.',
-      'Advanced detection can test many fonts via rendering differences.',
-      'low'
-    );
   },
 
   scanBattery(p) {
@@ -1043,117 +909,36 @@ const App = {
     p.innerHTML = '';
     if (navigator.getBattery) {
       navigator.getBattery().then(b => {
-        this.addItem(p, 'info', 'Level', `${Math.round(b.level * 100)}%`, 'Battery state can be a short-lived identifier.', '', 'low');
-        this.addItem(p, 'info', 'Charging', b.charging ? 'Yes' : 'No', 'Charging status is another signal.', '', 'low');
-      }).catch(() => {
-        this.addItem(p, 'info', 'Battery', 'Unavailable', 'Battery API blocked or unsupported.', '', 'low');
+        this.addItem(p, 'info', 'Level', `${(b.level*100).toFixed(0)}%`, 'Battery can be used as a short-lived identifier.');
+        this.updateGrade();
       });
     } else {
-      this.addItem(p, 'info', 'Battery', 'Unavailable', 'Battery API not supported in this browser.', '', 'low');
-    }
-  },
-
-  async rescanActionable() {
-    // only refresh actionables for speed
-    await this.scanProtection(document.getElementById('panel-prot'));
-    await this.scanPermissions(document.getElementById('panel-api'));
-    await this.scanNetwork(document.getElementById('panel-net'));
-    this.scanIdentity(document.getElementById('panel-id'));
-    this.setLastScan();
-    this.updateGrade();
-  },
-
-  async init(opts={ fresh:true }) {
-    if (opts.fresh) this.resetUI();
-
-    // Theme restore
-    const savedTheme = Storage.get('theme', 'light');
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    const toggle = document.getElementById('theme-toggle');
-    if (toggle) toggle.checked = (savedTheme === 'dark');
-
-    // Sections
-    this.mkSec('tips', '🎓', 'Smart Action Plan', 'Based on your results', 'We analyzed your settings. Here is your personalized to-do list.', true);
-
-    this.mkSec('prot', '🛡️', 'Protection Check', 'AdBlock, Cookies, GPC', 'Your first line of defense.');
-    this.mkSec('api', '🚦', 'Permissions API', 'Auto-detected site permissions', 'Settings already configured for this site.');
-    this.mkSec('net', '🌐', 'Network Exposure', 'Public IP, WebRTC', 'What sites see about your network.');
-    this.mkSec('id', '📱', 'Identity', 'Browser, Timezone', 'Software-level identifiers.');
-
-    this.mkSec('hw', '🔧', 'Hardware Specs', 'Screen, CPU, RAM', 'Device properties.');
-    this.mkSec('fp', '👁', 'Invisible Fingerprints', 'Canvas ID', 'Advanced tracking techniques.');
-    this.mkSec('priv', '🔐', 'Sensitive Access', 'Contacts, Files', 'Manual tests for sensitive APIs.');
-    this.mkSec('sen', '📡', 'Sensors & Motion', 'Gyro / motion permission', 'Phones are sensor arrays.');
-    this.mkSec('beh', '👆', 'Behavior', 'Touch & Mouse demo', 'Movement data can be captured.');
-    this.mkSec('font', '🔤', 'Font Inventory', 'Fingerprint concept', 'Font sets are unique.');
-    this.mkSec('med', '📷', 'Media Devices', 'Camera/mic inventory', 'Hardware identifiers.');
-    this.mkSec('bat', '🔋', 'Battery Status', 'Level, charging', 'Short-lived identifier.');
-
-    // Run scans
-    await this.scanProtection(document.getElementById('panel-prot'));
-    await this.scanPermissions(document.getElementById('panel-api'));
-    await this.scanNetwork(document.getElementById('panel-net'));
-    this.scanIdentity(document.getElementById('panel-id'));
-
-    this.scanHardware(document.getElementById('panel-hw'));
-    this.scanFP(document.getElementById('panel-fp'));
-    this.scanSensitive(document.getElementById('panel-priv'));
-    this.scanSensors(document.getElementById('panel-sen'));
-    this.scanBehavior(document.getElementById('panel-beh'));
-    this.scanFonts(document.getElementById('panel-font'));
-    this.scanMedia(document.getElementById('panel-med'));
-    this.scanBattery(document.getElementById('panel-bat'));
-
-    // Events
-    window.addEventListener('online', async () => {
-      SUI?.toast?.info?.('Network Changed', 'Rescanning network…');
-      await this.scanNetwork(document.getElementById('panel-net'));
+      this.addItem(p, 'info', 'Battery', 'Unavailable', 'Battery API not exposed in this browser.');
       this.updateGrade();
-      this.setLastScan();
-    });
-
-    document.getElementById('global-rescan').onclick = async () => {
-      SUI?.toast?.success?.('Rescanning', 'Updating analysis…');
-      await this.rescanActionable();
-    };
-
-    document.getElementById('theme-toggle').addEventListener('change', (e) => {
-      const theme = e.target.checked ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', theme);
-      Storage.set('theme', theme);
-    });
-
-    this.setLastScan();
-    this.updateGrade();
+    }
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => App.init({ fresh:true }));
+document.addEventListener('DOMContentLoaded', () => App.init());
 
-// ───────────────────────── PWA Update Toast ─────────────────────────
+// PWA Logic
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').then(reg => {
     if (reg.waiting) showUpdateToast(reg.waiting);
     reg.onupdatefound = () => {
       const newWorker = reg.installing;
-      if (!newWorker) return;
       newWorker.onstatechange = () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          showUpdateToast(newWorker);
-        }
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) showUpdateToast(newWorker);
       };
     };
-  }).catch(() => { /* ignore */ });
-
+  });
   navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
 }
-
 function showUpdateToast(worker) {
-  const t = document.getElementById('update-toast');
-  if (!t) return;
-  t.classList.add('visible');
+  const t = document.getElementById('update-toast'); t.classList.add('visible');
   document.getElementById('btn-update').onclick = () => worker.postMessage({ type: 'SKIP_WAITING' });
 }
 </script>
+
 </body>
 </html>
