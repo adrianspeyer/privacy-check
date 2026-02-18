@@ -1,4 +1,4 @@
-const CACHE_NAME = 'privacy-check-v3.8';
+const CACHE_NAME = 'privacy-check-v3.8.1';
 
 const CORE_ASSETS = [
   '/',
@@ -8,14 +8,12 @@ const CORE_ASSETS = [
   '/icon-512.png'
 ];
 
-// Install: cache core assets
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((c) => c.addAll(CORE_ASSETS))
   );
 });
 
-// Activate: cleanup old caches + claim clients
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => Promise.all(
@@ -24,14 +22,12 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Fetch helpers
 async function cacheFirst(req) {
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(req);
   if (cached) return cached;
 
   const fresh = await fetch(req);
-  // Only cache successful basic/cors responses
   if (fresh && fresh.ok) cache.put(req, fresh.clone());
   return fresh;
 }
@@ -49,35 +45,29 @@ async function networkFirst(req) {
   }
 }
 
-// Fetch: cache static assets, never cache dynamic IP endpoints
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
 
-  // Never cache the IP endpoint (Netlify function)
+  // Never cache dynamic endpoints
   if (url.pathname.startsWith('/.netlify/functions/')) {
     e.respondWith(fetch(e.request, { cache: 'no-store' }));
     return;
   }
-
-  // Never cache ipify fallback (only used by user action)
   if (url.hostname.includes('api.ipify.org') || url.hostname.includes('api64.ipify.org')) {
     e.respondWith(fetch(e.request, { cache: 'no-store' }));
     return;
   }
 
-  // Navigations: network-first with offline fallback to cached index.html
   if (e.request.mode === 'navigate') {
     e.respondWith(networkFirst(e.request));
     return;
   }
 
-  // Cache same-origin + jsdelivr CDN (SUI)
   if (url.origin === self.location.origin || url.hostname.includes('cdn.jsdelivr.net')) {
     e.respondWith(cacheFirst(e.request));
   }
 });
 
-// Message: update when user clicks "Update"
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });

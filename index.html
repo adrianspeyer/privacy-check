@@ -45,7 +45,6 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 
 .action-left { display: flex; align-items: center; gap: 10px; }
 
-/* Primary button */
 .btn-primary {
   background: var(--sui-blue-primary); color: white; border: none;
   border-radius: 24px; padding: 8px 18px;
@@ -56,7 +55,6 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 .btn-primary:active { transform: scale(0.96); }
 .btn-primary svg { width: 18px; height: 18px; }
 
-/* Secondary button */
 .btn-secondary {
   background: var(--sui-bg-elevated);
   color: var(--sui-text-primary);
@@ -64,7 +62,7 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
   border-radius: 24px;
   padding: 8px 14px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -117,9 +115,7 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 .edu-box { background: var(--sui-blue-soft); border: 1px solid var(--sui-blue-focus); padding: 16px; border-radius: var(--sui-radius-md); margin-bottom: 16px; font-size: 14px; color: var(--sui-text-primary); line-height: 1.5; display: flex; gap: 12px; }
 .edu-icon { font-size: 20px; flex-shrink: 0; margin-top: 0; }
 
-.perm-btn { width: 100%; margin-bottom: 12px; justify-content: flex-start; border-style: dashed; padding: 14px; height: auto; }
-
-/* Behavior demo (was missing in v3.5) */
+/* Behavior demo */
 .touch-demo { position: relative; height: 220px; border: 1px dashed var(--sui-border); border-radius: var(--sui-radius-md); background: var(--sui-bg-card); overflow: hidden; }
 .touch-trail { position: absolute; width: 10px; height: 10px; border-radius: 50%; opacity: 0.85; transform: translate(-50%, -50%); }
 
@@ -204,7 +200,7 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 
     <div class="sui-footer">
       <p>Data stays on device. Built with Speyer UI.</p>
-      <div class="sui-mt-2"><span class="sui-badge sui-badge-neutral sui-badge-sm sui-badge-outline" id="app-version">v3.8</span></div>
+      <div class="sui-mt-2"><span class="sui-badge sui-badge-neutral sui-badge-sm sui-badge-outline" id="app-version">v3.8.1</span></div>
     </div>
   </div>
 </div>
@@ -212,9 +208,9 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 <canvas id="fp-canvas" width="200" height="50" style="display:none"></canvas>
 
 <script>
-/* Privacy Check — v3.8 */
+/* Privacy Check — v3.8.1 */
 
-const APP_VERSION = 'v3.8';
+const APP_VERSION = 'v3.8.1';
 document.getElementById('app-version').innerText = APP_VERSION;
 
 // --- Storage ---
@@ -225,28 +221,23 @@ const saveState = (obj) => { try { localStorage.setItem(LS_KEY, JSON.stringify(o
 
 const Persist = loadState();
 Persist.theme = Persist.theme || null;
-Persist.tests = Persist.tests || {};     // permission tests
-Persist.vpn = Persist.vpn || {           // vpn/ip test
+Persist.tests = Persist.tests || {};
+Persist.vpn = Persist.vpn || {
+  baselineIp: null,
+  baselineAt: null,
   lastIp: null,
-  prevIp: null,
   lastAt: null,
-  prevAt: null,
-  status: 'not-tested', // not-tested | first-capture | unchanged | changed
-  source: null          // netlify | ipify
+  status: 'not-tested', // not-tested | baseline-set | unchanged | changed
+  source: null
 };
 
 const RiskMap = new Map();
 const FootprintMap = new Map();
 
 const SEV = { none:0, low:0.25, medium:0.5, high:1 };
+const State = { hasAdBlock:false };
 
-const State = {
-  isBrave: false,
-  isFirefox: false,
-  hasAdBlock: false
-};
-
-// Safe toast (does nothing if SUI not ready yet)
+// Safe toast wrapper
 const Toast = {
   info(t,m){ try { window.SUI?.toast?.info?.(t,m); } catch(e){} },
   success(t,m){ try { window.SUI?.toast?.success?.(t,m); } catch(e){} },
@@ -254,13 +245,11 @@ const Toast = {
   error(t,m){ try { window.SUI?.toast?.error?.(t,m); } catch(e){} }
 };
 
-// --- Theme ---
 function setTheme(mode){
   document.documentElement.setAttribute('data-theme', mode);
   Persist.theme = mode;
   saveState(Persist);
 }
-
 function initTheme(){
   const toggle = document.getElementById('theme-toggle');
   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -268,6 +257,11 @@ function initTheme(){
   setTheme(mode);
   toggle.checked = (mode === 'dark');
   toggle.addEventListener('change', (e) => setTheme(e.target.checked ? 'dark' : 'light'));
+}
+
+function fmtWhen(ts){
+  if (!ts) return '';
+  try { return new Date(ts).toLocaleString(); } catch(e){ return ''; }
 }
 
 function isPrivateIPv4(ip){
@@ -281,12 +275,10 @@ function isPrivateIPv4(ip){
   return false;
 }
 
-// --- Public IP fetch ---
-// Netlify-first (uses your own deploy). Fallback to ipify only when not on Netlify.
+// Netlify-first, fallback optional (only on click)
 const ALLOW_IPIFY_FALLBACK = true;
 
 async function fetchPublicIP(){
-  // 1) Netlify Function (best: your own deploy)
   try {
     const r = await fetch('/.netlify/functions/ip', { cache:'no-store' });
     if (r.ok) {
@@ -295,7 +287,6 @@ async function fetchPublicIP(){
     }
   } catch(e){}
 
-  // 2) Optional fallback (only when user clicks VPN Test)
   if (!ALLOW_IPIFY_FALLBACK) throw new Error('IP endpoint unavailable');
 
   const r2 = await fetch('https://api.ipify.org?format=json', { cache:'no-store' });
@@ -305,19 +296,13 @@ async function fetchPublicIP(){
   return { ip: String(j2.ip), source:'ipify' };
 }
 
-function fmtWhen(ts){
-  if (!ts) return '';
-  try { return new Date(ts).toLocaleString(); } catch(e){ return ''; }
-}
-
-// --- App ---
 const App = {
-  _bound: false,
+  _built:false,
 
   layout: {
     guide: ['tips'],
-    actionable: ['prot', 'api', 'net', 'id', 'sen', 'priv'],
-    footprint: ['hw', 'fp', 'beh', 'font', 'med', 'bat']
+    actionable: ['prot','api','net','id','sen','priv'],
+    footprint: ['hw','fp','beh','font','med','bat']
   },
 
   resetUI(){
@@ -427,43 +412,45 @@ const App = {
 
     const state = Persist.tests[id] || null;
 
-    // Render persistent states
     if (state === 'blocked') {
-      this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'You successfully denied access.', '', 'none');
+      this.addItem(panel,'risk',label,'Protected (Blocked)','You denied access.','', 'none');
       return;
     }
     if (state === 'exposed') {
-      this.addItem(panel, 'risk', label, 'Exposed', 'Access was granted previously.', '', 'high');
+      this.addItem(panel,'risk',label,'Exposed','Access was granted previously.','', 'high');
       return;
     }
 
     const btn = document.createElement('button');
-    btn.className = 'sui-btn sui-btn-ghost perm-btn';
+    btn.className = 'sui-btn sui-btn-ghost';
+    btn.style.width = '100%';
+    btn.style.marginBottom = '12px';
+    btn.style.justifyContent = 'flex-start';
+    btn.style.borderStyle = 'dashed';
+    btn.style.padding = '14px';
+    btn.style.height = 'auto';
     btn.innerHTML = `<span style="margin-right:8px">${icon}</span> ${label}`;
 
     btn.onclick = async () => {
       btn.classList.add('sui-btn-loading');
       try {
         const res = await onClick(btn, panel);
-
-        // If user cancels, do NOT mark exposed
         if (res && res.status === 'cancelled') {
           btn.classList.remove('sui-btn-loading');
-          Toast.info('Cancelled', 'No access granted.');
+          Toast.info('Cancelled','No access granted.');
           return;
         }
-
         Persist.tests[id] = 'exposed';
         saveState(Persist);
         btn.classList.remove('sui-btn-loading');
-        Toast.warning('Granted', 'This permission can expose sensitive data.');
-        this.render(); // re-render to show persistent row
+        Toast.warning('Granted','This permission can expose data.');
+        this.rescan(); // refresh grade + guide
       } catch (e) {
         Persist.tests[id] = 'blocked';
         saveState(Persist);
         btn.classList.remove('sui-btn-loading');
-        Toast.success('Protected', 'Access denied or unavailable.');
-        this.render();
+        Toast.success('Protected','Access denied or unavailable.');
+        this.rescan();
       }
     };
 
@@ -505,51 +492,103 @@ const App = {
     }
   },
 
-  updateGuide(panelTips){
-    if (!panelTips) return;
+  updateGuide() {
+    const panel = document.getElementById('panel-tips');
+    if (!panel) return;
 
     const tips = [];
 
     const ua = navigator.userAgent || '';
-    State.isBrave = navigator.brave !== undefined;
-    State.isFirefox = ua.toLowerCase().includes('firefox');
+    const isBrave = navigator.brave !== undefined;
+    const isFirefox = ua.toLowerCase().includes('firefox');
 
-    if (State.isBrave || State.isFirefox) {
-      tips.push({ s:'success', t:'Browser', d:'Privacy-focused browser detected.' });
-    } else {
-      tips.push({ s:'warning', t:'Browser', d:'Consider Brave or Firefox for stronger default privacy.' });
-    }
+    tips.push(isBrave || isFirefox
+      ? { s:'success', t:'Browser', d:'Privacy-focused browser detected.' }
+      : { s:'warning', t:'Browser', d:'Consider Brave or Firefox for stronger default privacy.' }
+    );
 
-    if (State.hasAdBlock) {
-      tips.push({ s:'success', t:'Ad Blocking', d:'Many tracking scripts will be blocked.' });
-    } else {
-      tips.push({ s:'error', t:'Ad Blocking', d:'Install an ad/tracker blocker for a major privacy win.' });
-    }
+    tips.push(State.hasAdBlock
+      ? { s:'success', t:'Ad Blocking', d:'Many tracking scripts will be blocked.' }
+      : { s:'error', t:'Ad Blocking', d:'Install an ad/tracker blocker for a major privacy win.' }
+    );
 
-    // VPN status is only graded after two captures (so it doesn’t punish people who never touch it)
     if (Persist.vpn.status === 'changed') {
-      tips.push({ s:'success', t:'VPN / Route', d:'Your exit route changed since last check (often a VPN signal).' });
+      tips.push({ s:'success', t:'VPN Test', d:'IP changed between checks (likely VPN / route change).' });
     } else if (Persist.vpn.status === 'unchanged') {
-      tips.push({ s:'warning', t:'VPN / Route', d:'No route change detected. If you expected VPN, re-check with VPN on.' });
+      tips.push({ s:'warning', t:'VPN Test', d:'IP did not change. If VPN was on, verify it is active and test again.' });
+    } else if (Persist.vpn.status === 'baseline-set') {
+      tips.push({ s:'info', t:'VPN Test', d:'Baseline saved. Turn VPN on, then press VPN Test again.' });
     }
 
-    panelTips.innerHTML = '';
+    panel.innerHTML = '';
     const edu = document.createElement('div');
     edu.className = 'edu-box';
     edu.innerHTML = `<div class="edu-icon">ℹ️</div><div>We analyzed your setup. Here’s your quick action plan.</div>`;
-    panelTips.appendChild(edu);
+    panel.appendChild(edu);
 
     tips.forEach(t => {
       const div = document.createElement('div');
       div.className = `sui-alert sui-alert-${t.s} sui-mb-2`;
       div.innerHTML = `<div class="sui-alert-content"><div class="sui-alert-title">${t.t}</div><div>${t.d}</div></div>`;
-      panelTips.appendChild(div);
+      panel.appendChild(div);
     });
   },
 
-  // ---------------- Scanners ----------------
+  async vpnTest() {
+    const btn = document.getElementById('btn-vpn-test');
+    if (!btn) return;
 
+    btn.setAttribute('disabled', 'disabled');
+    btn.style.opacity = '0.7';
+
+    try {
+      const { ip, source } = await fetchPublicIP();
+
+      if (!Persist.vpn.baselineIp) {
+        Persist.vpn.baselineIp = ip;
+        Persist.vpn.baselineAt = Date.now();
+        Persist.vpn.lastIp = ip;
+        Persist.vpn.lastAt = Persist.vpn.baselineAt;
+        Persist.vpn.source = source;
+        Persist.vpn.status = 'baseline-set';
+        saveState(Persist);
+
+        Toast.success('VPN Test', 'Baseline saved. Turn VPN ON, then press VPN Test again.');
+      } else {
+        Persist.vpn.lastIp = ip;
+        Persist.vpn.lastAt = Date.now();
+        Persist.vpn.source = source;
+
+        Persist.vpn.status = (Persist.vpn.lastIp === Persist.vpn.baselineIp) ? 'unchanged' : 'changed';
+        saveState(Persist);
+
+        Toast.success('VPN Test', Persist.vpn.status === 'changed'
+          ? 'IP changed (likely VPN / route change).'
+          : 'IP unchanged.'
+        );
+      }
+
+      // Refresh only the parts that reflect this (no UI rebuild / no jumping)
+      await this.scanNetwork(document.getElementById('panel-net'));
+      this.updateGuide();
+      this.updateGrade();
+    } catch (e) {
+      console.error(e);
+      Toast.error('VPN Test', 'IP check failed (Netlify function unavailable?).');
+    } finally {
+      btn.removeAttribute('disabled');
+      btn.style.opacity = '1';
+    }
+  },
+
+  resetVpnTest() {
+    Persist.vpn = { baselineIp:null, baselineAt:null, lastIp:null, lastAt:null, status:'not-tested', source:null };
+    saveState(Persist);
+  },
+
+  // ---- Scanners ----
   async scanProtection(p) {
+    if (!p) return;
     p.innerHTML = '';
 
     const gpc = !!navigator.globalPrivacyControl;
@@ -562,7 +601,7 @@ const App = {
       'Cookies can be used for tracking unless blocked/partitioned.',
       '', cookiesOn ? 'medium' : 'none');
 
-    // More reliable adblock bait
+    // Stronger adblock bait
     const bait = document.createElement('div');
     bait.className = 'adsbox ad ads-banner adsbygoogle ad-placement';
     bait.style.cssText = 'width:12px;height:12px;position:absolute;left:-9999px;top:0;background:#f00;';
@@ -579,7 +618,6 @@ const App = {
       bait.offsetHeight === 0;
 
     bait.remove();
-
     State.hasAdBlock = blocked;
 
     this.addItem(p,'risk','Ad Blocker', blocked ? 'Active' : 'Missing',
@@ -589,6 +627,7 @@ const App = {
   },
 
   async scanPermissions(p) {
+    if (!p) return;
     p.innerHTML = '';
 
     if (!navigator.permissions?.query) {
@@ -620,32 +659,19 @@ const App = {
   },
 
   async scanNetwork(p) {
+    if (!p) return;
     p.innerHTML = '';
 
-    // Connection (informational)
-    if (navigator.connection?.effectiveType) {
-      this.addItem(p,'info','Connection', navigator.connection.effectiveType, 'Rough network category (not precise).');
-    }
-
-    // WebRTC: detect if a PUBLIC candidate appears (risk)
-    // Note: behavior varies by browser/privacy settings.
-    let webRtcPublic = false;
+    // WebRTC candidate exposure
     let candidates = new Set();
-
     try {
       const pc = new RTCPeerConnection({ iceServers: [] });
       pc.createDataChannel('x');
 
       pc.onicecandidate = (e) => {
         if (!e.candidate?.candidate) return;
-
-        // IPv4 extraction
         const m4 = e.candidate.candidate.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
         if (m4) candidates.add(m4[0]);
-
-        // Basic IPv6 extraction (not exhaustive)
-        const m6 = e.candidate.candidate.match(/([a-f0-9:]+:+)+[a-f0-9]+/i);
-        if (m6 && m6[0].includes(':')) candidates.add(m6[0]);
       };
 
       const offer = await pc.createOffer();
@@ -654,20 +680,17 @@ const App = {
       await new Promise(r => setTimeout(r, 900));
       pc.close();
 
-      // Evaluate public IPv4 only (safe + simple)
-      const ips = Array.from(candidates).filter(x => x.includes('.'));
+      const ips = Array.from(candidates);
       if (ips.length) {
         const anyPublic = ips.some(ip => !isPrivateIPv4(ip));
-        webRtcPublic = anyPublic;
-
         this.addItem(
           p,
-          webRtcPublic ? 'risk' : 'info',
+          anyPublic ? 'risk' : 'info',
           'WebRTC Candidates',
           ips.slice(0, 6).join(', '),
-          webRtcPublic ? 'A public IP appeared in WebRTC candidates.' : 'Candidates observed (often local/private).',
-          webRtcPublic ? 'Consider disabling WebRTC or using stricter browser privacy settings.' : '',
-          webRtcPublic ? 'high' : 'none'
+          anyPublic ? 'A public IP appeared in WebRTC candidates.' : 'Candidates observed (often local/private).',
+          anyPublic ? 'Consider disabling WebRTC or using stricter browser privacy settings.' : '',
+          anyPublic ? 'high' : 'none'
         );
       } else {
         this.addItem(p,'info','WebRTC Candidates','None observed','Some browsers restrict candidate visibility.');
@@ -676,119 +699,60 @@ const App = {
       this.addItem(p,'info','WebRTC','Unavailable','WebRTC is blocked or unsupported in this browser.');
     }
 
-    // VPN / Route Test (user-initiated)
-    const status = Persist.vpn.status;
-    const last = Persist.vpn.lastIp;
-    const prev = Persist.vpn.prevIp;
-
-    const statusLabel =
-      status === 'changed' ? 'Changed (Likely VPN / network change)' :
-      status === 'unchanged' ? 'Unchanged' :
-      status === 'first-capture' ? 'Captured once (toggle VPN and test again)' :
+    // VPN status (simple)
+    const status =
+      Persist.vpn.status === 'changed' ? 'Changed (likely VPN / route change)' :
+      Persist.vpn.status === 'unchanged' ? 'Unchanged' :
+      Persist.vpn.status === 'baseline-set' ? 'Baseline saved (press again with VPN on)' :
       'Not tested';
 
-    // Only grade AFTER two captures
-    if (status === 'unchanged') {
-      this.addItem(p,'risk','VPN / Route', statusLabel,
-        'No change detected since last capture.',
-        'If you expected VPN, enable it and press VPN Test again.',
+    // Only grade after baseline exists and user did a compare
+    if (Persist.vpn.status === 'unchanged') {
+      this.addItem(p,'risk','VPN Test', status,
+        'IP did not change between baseline and latest check.',
+        'If VPN was on, verify it is active and test again.',
         'low');
-    } else if (status === 'changed') {
-      this.addItem(p,'risk','VPN / Route', statusLabel,
-        'Your exit route changed since the last capture.',
+    } else if (Persist.vpn.status === 'changed') {
+      this.addItem(p,'risk','VPN Test', status,
+        'IP changed between baseline and latest check.',
         'This often happens when a VPN is enabled (or when switching networks).',
         'none');
     } else {
-      this.addItem(p,'info','VPN / Route', statusLabel,
-        'This test only runs when you press VPN Test.',
-        'It compares two captured public IPs.');
+      this.addItem(p,'info','VPN Test', status,
+        'Press the top “VPN Test” button. It saves a baseline, then compares on the next press.');
     }
 
-    this.addItem(
-      p,
-      'info',
-      'Public IP (last)',
-      last ? `${last} · ${fmtWhen(Persist.vpn.lastAt)}${Persist.vpn.source ? ` · ${Persist.vpn.source}` : ''}` : 'Not captured',
-      'Public IP is your “internet-facing” address.'
-    );
+    this.addItem(p,'info','Baseline IP', Persist.vpn.baselineIp ? `${Persist.vpn.baselineIp} · ${fmtWhen(Persist.vpn.baselineAt)}` : '—');
+    this.addItem(p,'info','Latest IP', Persist.vpn.lastIp ? `${Persist.vpn.lastIp} · ${fmtWhen(Persist.vpn.lastAt)}${Persist.vpn.source ? ` · ${Persist.vpn.source}` : ''}` : '—');
 
-    this.addItem(
-      p,
-      'info',
-      'Public IP (previous)',
-      prev ? `${prev} · ${fmtWhen(Persist.vpn.prevAt)}` : '—',
-      'Used to compare whether your exit route changed.'
-    );
-
-    // Controls
-    const controls = document.createElement('div');
-    controls.style.display = 'flex';
-    controls.style.gap = '10px';
-    controls.style.marginTop = '12px';
-
-    const btnCapture = document.createElement('button');
-    btnCapture.className = 'sui-btn sui-btn-sm sui-btn-secondary';
-    btnCapture.style.flex = '1';
-    btnCapture.textContent = 'Capture / Compare IP';
-
-    const btnReset = document.createElement('button');
-    btnReset.className = 'sui-btn sui-btn-sm sui-btn-ghost';
-    btnReset.style.flex = '1';
-    btnReset.textContent = 'Reset VPN Test';
-
-    btnCapture.onclick = async () => {
-      btnCapture.classList.add('sui-btn-loading');
-      try {
-        const { ip, source } = await fetchPublicIP();
-
-        // shift last -> prev
-        Persist.vpn.prevIp = Persist.vpn.lastIp;
-        Persist.vpn.prevAt = Persist.vpn.lastAt;
-
-        Persist.vpn.lastIp = ip;
-        Persist.vpn.lastAt = Date.now();
-        Persist.vpn.source = source;
-
-        if (!Persist.vpn.prevIp) Persist.vpn.status = 'first-capture';
-        else Persist.vpn.status = (Persist.vpn.prevIp === Persist.vpn.lastIp) ? 'unchanged' : 'changed';
-
-        saveState(Persist);
-
-        Toast.success('VPN Test', 'Captured public IP.');
-        await this.render(); // re-render so grade updates
-      } catch(e) {
-        console.error(e);
-        Toast.error('VPN Test', 'IP check failed (Netlify function not available?).');
-      } finally {
-        btnCapture.classList.remove('sui-btn-loading');
-      }
+    // Optional reset (not required, but useful)
+    const reset = document.createElement('button');
+    reset.className = 'sui-btn sui-btn-sm sui-btn-ghost';
+    reset.style.width = '100%';
+    reset.textContent = 'Reset VPN Test';
+    reset.onclick = async () => {
+      this.resetVpnTest();
+      Toast.info('VPN Test', 'Reset complete.');
+      await this.scanNetwork(p);
+      this.updateGuide();
+      this.updateGrade();
     };
+    p.appendChild(reset);
 
-    btnReset.onclick = async () => {
-      Persist.vpn = { lastIp:null, prevIp:null, lastAt:null, prevAt:null, status:'not-tested', source:null };
-      saveState(Persist);
-      Toast.info('Reset', 'VPN test state cleared.');
-      await this.render();
-    };
-
-    controls.appendChild(btnCapture);
-    controls.appendChild(btnReset);
-    p.appendChild(controls);
-
-    // Add an education note (after controls)
     const hint = document.createElement('div');
     hint.className = 'edu-box';
-    hint.innerHTML = `<div class="edu-icon">🧪</div><div><b>How to test:</b> Capture once with VPN off, enable VPN, then press VPN Test again. If the IP changes, we mark it as a likely VPN / route change.</div>`;
+    hint.innerHTML = `<div class="edu-icon">🧪</div><div><b>Simple test:</b> Press <b>VPN Test</b> once (VPN off). Turn VPN on. Press <b>VPN Test</b> again.</div>`;
     p.appendChild(hint);
   },
 
   scanIdentity(p) {
+    if (!p) return;
     p.innerHTML = '';
 
     const ua = navigator.userAgent || '';
-    State.isBrave = navigator.brave !== undefined;
-    State.isFirefox = ua.toLowerCase().includes('firefox');
-    const isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor || '') && !State.isBrave;
+    const isBrave = navigator.brave !== undefined;
+    const isFirefox = ua.toLowerCase().includes('firefox');
+    const isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor || '') && !isBrave;
 
     this.addItem(
       p,'risk','Browser Privacy',
@@ -803,6 +767,7 @@ const App = {
   },
 
   scanHardware(p) {
+    if (!p) return;
     p.innerHTML = '';
     this.addItem(p,'info','Screen', `${screen.width}x${screen.height}`, 'Screen size can help identify a device.');
     this.addItem(p,'info','CPU Cores', navigator.hardwareConcurrency || 'unknown', 'Hardware signal (not graded).');
@@ -810,6 +775,7 @@ const App = {
   },
 
   scanFP(p) {
+    if (!p) return;
     p.innerHTML = '';
     try {
       const cv = document.getElementById('fp-canvas');
@@ -828,6 +794,7 @@ const App = {
   },
 
   scanBehavior(p) {
+    if (!p) return;
     p.innerHTML = '';
     const demo = document.createElement('div');
     demo.className = 'touch-demo';
@@ -856,21 +823,24 @@ const App = {
   },
 
   scanFonts(p) {
+    if (!p) return;
     p.innerHTML = '';
     this.addItem(p, 'info', 'Fonts', 'System Default', 'Font availability can be used for fingerprinting.');
   },
 
   scanMedia(p) {
+    if (!p) return;
     p.innerHTML = '';
     this.addBtn(p, 'media', 'Scan Devices', '📷', async () => {
       if (!navigator.mediaDevices?.enumerateDevices) throw new Error('MediaDevices not supported');
       const devs = await navigator.mediaDevices.enumerateDevices();
-      devs.forEach(d => this.addItem(p,'info', d.kind, d.label || 'Hidden', 'Device labels are often hidden until permission is granted.'));
+      devs.forEach(d => this.addItem(p,'info', d.kind, d.label || 'Hidden', 'Device labels may be hidden until permission is granted.'));
       return { status:'exposed' };
     });
   },
 
   scanBattery(p) {
+    if (!p) return;
     p.innerHTML = '';
     if (navigator.getBattery) {
       navigator.getBattery().then(b => {
@@ -882,6 +852,7 @@ const App = {
   },
 
   scanSensors(p) {
+    if (!p) return;
     p.innerHTML = '';
     this.addBtn(p, 'motion', 'Test Motion / Gyroscope', '📡', async () => {
       try {
@@ -907,6 +878,7 @@ const App = {
   },
 
   scanSensitive(p) {
+    if (!p) return;
     p.innerHTML = '';
 
     this.addBtn(p, 'contacts', 'Test Contacts', '👥', async () => {
@@ -934,93 +906,69 @@ const App = {
     });
   },
 
-  async render(){
+  // Build UI once (no jumping), then rescan updates panels in place
+  async build() {
     this.resetUI();
+
+    this.mkSec('tips','🎓','Smart Action Plan','Based on your results','Your grade is based on actionable security checks.', true);
+
+    this.mkSec('prot','🛡️','Protection Check','AdBlock, Cookies, GPC','Your first line of defense.');
+    this.mkSec('api','🚦','Permissions API','Auto-detected settings','Permissions you already configured.');
+    this.mkSec('net','🌐','Network Exposure','WebRTC + VPN Test','Network signals sites can infer.');
+    this.mkSec('id','📱','Identity','Browser + Timezone','Software identity signals.');
+    this.mkSec('sen','📡','Sensors & Motion','Motion test','Only runs when you tap.');
+    this.mkSec('priv','🔐','Sensitive Access','Contacts, Files','Only runs when you tap.');
+
+    this.mkSec('hw','🔧','Hardware Specs','Screen, CPU, RAM','Uniqueness signals (not graded).');
+    this.mkSec('fp','👁','Invisible Fingerprints','Canvas','Rendering quirks trackers can use.');
+    this.mkSec('beh','👆','Behavior','Touch & Mouse','Biometric-style movement signals.');
+    this.mkSec('font','🔤','Font Inventory','High-level signal','Font presence can be fingerprinting data.');
+    this.mkSec('med','📷','Media Devices','Camera, Mic','Labels may be hidden until permission.');
+    this.mkSec('bat','🔋','Battery Status','Level, Charging','Short-term identifier.');
+
+    this._built = true;
+  },
+
+  // Rescan key parts without rebuilding UI
+  async rescan() {
     this.resetMaps();
 
-    // Guide
-    const tipsPanel = this.mkSec(
-      'tips','🎓','Smart Action Plan','Based on your results',
-      'Your grade is based on actionable security checks.', true
-    );
+    await this.scanProtection(document.getElementById('panel-prot'));
+    await this.scanPermissions(document.getElementById('panel-api'));
+    await this.scanNetwork(document.getElementById('panel-net'));
+    this.scanIdentity(document.getElementById('panel-id'));
+    this.scanSensors(document.getElementById('panel-sen'));
+    this.scanSensitive(document.getElementById('panel-priv'));
 
-    // Actionable Security
-    const pProt = this.mkSec('prot','🛡️','Protection Check','AdBlock, Cookies, GPC','Your first line of defense.');
-    await this.scanProtection(pProt);
+    this.scanHardware(document.getElementById('panel-hw'));
+    this.scanFP(document.getElementById('panel-fp'));
+    this.scanBehavior(document.getElementById('panel-beh'));
+    this.scanFonts(document.getElementById('panel-font'));
+    this.scanMedia(document.getElementById('panel-med'));
+    this.scanBattery(document.getElementById('panel-bat'));
 
-    const pApi = this.mkSec('api','🚦','Permissions API','Auto-detected settings','Permissions you already configured.');
-    await this.scanPermissions(pApi);
-
-    const pNet = this.mkSec('net','🌐','Network Exposure','WebRTC + VPN Test','Network signals sites can infer.');
-    await this.scanNetwork(pNet);
-
-    const pId = this.mkSec('id','📱','Identity','Browser + Timezone','Software identity signals.');
-    this.scanIdentity(pId);
-
-    const pSen = this.mkSec('sen','📡','Sensors & Motion','Motion test','Only runs when you tap.');
-    this.scanSensors(pSen);
-
-    const pPriv = this.mkSec('priv','🔐','Sensitive Access','Contacts, Files','Only runs when you tap.');
-    this.scanSensitive(pPriv);
-
-    // Footprint
-    const pHw = this.mkSec('hw','🔧','Hardware Specs','Screen, CPU, RAM','Uniqueness signals (not graded).');
-    this.scanHardware(pHw);
-
-    const pFp = this.mkSec('fp','👁','Invisible Fingerprints','Canvas','Rendering quirks trackers can use.');
-    this.scanFP(pFp);
-
-    const pBeh = this.mkSec('beh','👆','Behavior','Touch & Mouse','Biometric-style movement signals.');
-    this.scanBehavior(pBeh);
-
-    const pFont = this.mkSec('font','🔤','Font Inventory','High-level signal','Font presence can be fingerprinting data.');
-    this.scanFonts(pFont);
-
-    const pMed = this.mkSec('med','📷','Media Devices','Camera, Mic','Labels may be hidden until permission.');
-    this.scanMedia(pMed);
-
-    const pBat = this.mkSec('bat','🔋','Battery Status','Level, Charging','Short-term identifier.');
-    this.scanBattery(pBat);
-
-    // Update guide + grade
-    this.updateGuide(tipsPanel);
+    this.updateGuide();
     this.updateGrade();
   },
 
-  bindOnce(){
-    if (this._bound) return;
-    this._bound = true;
-
-    // Rescan: re-render everything safely
+  bindOnce() {
     document.getElementById('global-rescan').addEventListener('click', async (e) => {
       e.preventDefault();
-      try {
-        Toast.success('Rescanning', 'Updating analysis…');
-        await this.render();
-      } catch(err) {
-        console.error(err);
-        Toast.error('Rescan Failed', 'Check console for details.');
-      }
+      Toast.success('Rescanning','Updating analysis…');
+      await this.rescan();
     });
 
-    // VPN Test: scroll to Network + run capture/compare
     document.getElementById('btn-vpn-test').addEventListener('click', async (e) => {
       e.preventDefault();
-      try {
-        // open Network section (best effort)
-        const netTrigger = document.querySelector('[aria-expanded][class*="sui-accordion-trigger"]');
-        // We won't force open all; the Network section includes its own buttons.
-        Toast.info('VPN Test', 'Open “Network Exposure” and press “Capture / Compare IP”.');
-        const netHeader = document.querySelector('#sec-actionable');
-        if (netHeader) netHeader.scrollIntoView({ behavior:'smooth', block:'start' });
-      } catch(err) {}
+      await this.vpnTest();
     });
   },
 
-  async init(){
+  async init() {
     initTheme();
     this.bindOnce();
-    await this.render();
+    await this.build();
+    await this.rescan();
   }
 };
 
