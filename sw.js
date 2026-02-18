@@ -1,4 +1,4 @@
-const CACHE_NAME = 'privacy-check-v2.1'; // MUST MATCH APP_VERSION in index.html
+const CACHE_NAME = 'privacy-check-v3.2'; // MUST MATCH APP_VERSION in index.html
 const ASSETS = [
   '/', 
   '/index.html', 

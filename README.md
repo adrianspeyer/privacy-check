@@ -14,114 +14,93 @@ It was built as an educational tool for **seniors, teens, and anyone who wants t
 
 ---
 
-## What Does It Detect?
+## 🧠 The "Dual-Tier" Logic
 
-A lot. Here's the short version:
+Unlike other tools that give you a scary "F" just because you have a unique screen size, Privacy Check splits your results into two meaningful categories:
 
-- **Device Identity** — Your browser, OS, language, timezone, and more. Before you've typed a single character.
-- **Hardware Profile** — Screen size, CPU cores, RAM, pixel density, refresh rate. Enough to narrow down your exact device.
-- **Network Exposure** — Connection type, speed, latency, and your local IP address leaking through WebRTC (yes, even through VPNs).
-- **Behavior Tracking** — An interactive demo showing how every touch, mouse movement, scroll, and keystroke can be captured.
-- **Phone Sensors** — Accelerometer, gyroscope, compass, ambient light, magnetometer, proximity. Your phone is a sensor array.
-- **Media & Capabilities** — Camera resolution, mic/speaker labels, installed voice packs, supported codecs.
-- **Browser Capabilities** — Cookies, storage APIs, service workers, NFC, Bluetooth, vibration, push notifications, wake lock, screen capture, and dozens more.
-- **GPU & Graphics** — Your exact GPU model, extensions, and rendering characteristics.
-- **Your Preferences** — Dark mode, reduced motion, color gamut, HDR, high contrast. Every setting is a data point.
-- **Font Detection** — Tests 38 common fonts. Your combination is almost unique.
-- **Invisible Fingerprints** — Canvas, audio, and WebGL fingerprints that survive clearing cookies and incognito mode.
-- **Timing & Performance** — Page load, timer precision, CPU benchmarks, memory limits.
-- **Permission-Gated Data** — Location, clipboard, camera resolution, vibration, wake lock. What happens when you tap "Allow."
-- **Battery Status** — Level, charging state, and drain rate. No permission needed in some browsers.
+### 1. 🛡️ Actionable Security (The Grade)
 
-Each data point includes a plain-language **"What this tells us"** explanation so you understand the privacy implication.
+Things you can actually fix. Your A–F grade is based **only** on these risks.
 
----
+- **WebRTC Leaks:** Is your real IP visible through your VPN?
+- **Ad Blocking:** Are you stopping invisible trackers?
+- **Global Privacy Control:** Is your browser signaling "Do Not Sell"?
+- **Permissions:** Have you accidentally granted access to Motion or Camera?
 
-## Features
+### 2. 👣 Digital Footprint (The Complexity)
 
-- 🔄 **Reactive Rescan** — Toggle your VPN or settings and hit "Rescan" to see results instantly without reloading.
-- 🎓 **Smart Action Plan** — Dynamically analyzes your results (e.g., detects AdBlock/Brave) and gives personalized advice.
-- 📊 **Privacy Report Card** — Overall A–F grade with per-category scores and a visual progress bar.
-- 🎛️ **Collapsible Sections** — 16 categories, detailed data rows with educational context.
-- 🌗 **Light & Dark Mode** — Sticky header with instant theme toggle.
-- 👆 **Interactive Demos** — Touch/mouse tracking visualization, scroll depth counter, permission tests.
-- 🛡️ **Protection Check** — Tests for HTTPS, ad blockers, WebRTC leaks, cookie blocking, and fingerprint randomization.
-- ♿ **Accessible** — WCAG 2.1 AA, keyboard navigable, screen reader friendly.
-- 📱 **Native PWA** — Installable, offline-ready, with native scroll physics (no rubber-banding).
+Things that identify you but are hard to change. These don't lower your grade, but they show how unique you are.
+
+- **Hardware:** Screen resolution, CPU cores, RAM.
+- **Fingerprints:** Canvas rendering, Audio context hashes.
+- **Identity:** User Agent string, Timezone, System Fonts.
 
 ---
 
-## Tech Stack
+## ✨ Features
 
-- Single HTML file (no build step)
-- [Speyer UI (SUI)](https://github.com/adrianspeyer/speyer-ui) design system
-- Inter font via Google Fonts
-- Service worker for offline caching & "Nagging Toast" updates
-- Zero dependencies. Zero frameworks. Just works.
+- **🔄 Reactive Engine** — Toggle your VPN or change a setting, then hit the sticky "Rescan" button. The dashboard updates instantly without a page reload.
+- **🎓 Smart Action Plan** — A dynamic guide that reads your situation (e.g., "You have a VPN, but WebRTC is leaking") and gives tailored advice.
+- **📱 Native App Feel** — High-performance PWA. Installable, offline-ready, native scroll physics.
+- **👆 Interactive Demos** — Visualizes mouse and touch tracking in real time.
+- **♿ Accessible Design** — WCAG 2.1 AA compliant. High contrast, screen reader friendly, never relies on color alone.
 
 ---
 
-## Getting Started
+## 🛠️ Tech Stack
+
+- **Zero Dependencies:** Single HTML file (~60KB). No build step.
+- **Design System:** [Speyer UI](https://github.com/adrianspeyer/speyer-ui) (CDN-based).
+- **Offline Core:** Service Worker with "Nagging Toast" updates.
+
+---
+
+## 🚀 Getting Started
 
 ### Option 1: Just Open It
 
-Download `index.html` and open it in your browser. Everything works locally.
+Download `index.html` and open it in any browser. Works 100% locally.
 
 ### Option 2: Deploy as a PWA
 
-Drop all 5 files on any static host served over HTTPS:
+Drop these files on any static host (Netlify, Vercel, GitHub Pages):
 
-```
-index.html
-manifest.json
-sw.js
-icon-192.png
-icon-512.png
-```
-
-Works on GitHub Pages, Netlify, Vercel, Cloudflare Pages — anything that serves static files over HTTPS.
-
-### Option 3: GitHub Pages
-
-1. Fork this repo  
-2. Go to Settings → Pages → Deploy from main branch  
-3. Done. Your users can install it as an app from the browser.
-
----
-
-## File Structure
-
-```
+```text
 privacy-check/
-├── index.html       # The entire app
-├── manifest.json    # PWA manifest
-├── sw.js            # Service worker (offline support)
-├── icon-192.png     # App icon (192×192)
-├── icon-512.png     # App icon (512×512)
-└── README.md        # You're reading it
+├── index.html       # The application
+├── manifest.json    # PWA install config
+├── sw.js            # Offline logic & updates
+├── icon-192.png     # App icon
+└── icon-512.png     # App icon
 ```
+
+> **Note for Netlify Users:**  
+> Ensure `sw.js` is served with `Cache-Control: no-cache` so updates happen immediately.  
+> A `netlify.toml` is included in the repo for this purpose.
 
 ---
 
 ## Who Is This For?
 
-- **Seniors** who want to understand what's happening when they browse the web
-- **Teens** who grew up online but never stopped to look under the hood
-- **Teachers and educators** who want a live demo for digital literacy classes
-- **Event organizers** running privacy awareness workshops
-- **Anyone** who's ever wondered "how do they know that about me?"
+- **Seniors** who want to understand what "tracking" actually looks like
+- **Teens** who grew up online but never looked under the hood
+- **Teachers** looking for a safe, visual demo for digital literacy
+- **You**, checking if your VPN is actually working
 
 ---
 
 ## Contributing
 
-Found a browser API I missed? Have a better explanation for a data point? PRs are welcome.
+Found a new browser API that leaks data?  
+Have a clearer way to explain canvas fingerprinting?
+
+Pull requests are welcome.
 
 ---
 
 ## License
 
-MIT — use it, fork it, teach with it.
+MIT — Use it, fork it, teach with it.
 
 ---
 

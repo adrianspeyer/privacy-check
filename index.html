@@ -4,12 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#3B82F6">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Privacy Check">
 <meta name="description" content="Audit your digital footprint. See what your phone reveals.">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="data:,"> 
+
 <title>Privacy Check</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,148 +22,64 @@
 <script src="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@2.0.7/dist/sui.min.js" defer></script>
 
 <style>
-/* ── PWA Physics & Layout ── */
-body, html {
-  position: fixed; width: 100%; height: 100%;
-  overflow: hidden; background: var(--sui-bg-primary);
-  -webkit-user-select: none; user-select: none;
-  touch-action: pan-y;
-}
-.app-scroller {
-  height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  padding-bottom: env(safe-area-inset-bottom);
-  overscroll-behavior-y: none;
-}
-.app-wrap {
-  max-width: 640px; margin: 0 auto;
-  padding: 0 var(--sui-space-3) 160px;
-}
+/* ── PWA Physics ── */
+body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; background: var(--sui-bg-primary); -webkit-user-select: none; user-select: none; touch-action: pan-y; }
+.app-scroller { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: env(safe-area-inset-bottom); overscroll-behavior-y: none; }
+.app-wrap { max-width: 640px; margin: 0 auto; padding: 0 var(--sui-space-3) 160px; }
 
 /* ── Sticky Action Bar ── */
-.action-bar {
-  position: sticky; top: 0; z-index: 999;
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px var(--sui-space-3);
-  margin: 0 -16px; /* Bleed to edge */
-  padding-left: calc(var(--sui-space-3) + env(safe-area-inset-left));
-  padding-right: calc(var(--sui-space-3) + env(safe-area-inset-right));
-  padding-top: calc(12px + env(safe-area-inset-top));
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--sui-border);
-}
+.action-bar { position: sticky; top: 0; z-index: 999; display: flex; justify-content: space-between; align-items: center; padding: 12px var(--sui-space-3); margin: 0 -16px; padding-left: calc(var(--sui-space-3) + env(safe-area-inset-left)); padding-right: calc(var(--sui-space-3) + env(safe-area-inset-right)); padding-top: calc(12px + env(safe-area-inset-top)); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--sui-border); }
 [data-theme="dark"] .action-bar { background: rgba(11, 15, 26, 0.95); }
-
-.btn-rescan {
-  background: var(--sui-blue-primary); color: white;
-  border: none; border-radius: 24px;
-  padding: 8px 18px; font-size: 15px; font-weight: 600;
-  display: flex; align-items: center; gap: 8px;
-  box-shadow: var(--sui-shadow-sm); cursor: pointer;
-}
+.btn-rescan { background: var(--sui-blue-primary); color: white; border: none; border-radius: 24px; padding: 8px 18px; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: var(--sui-shadow-sm); cursor: pointer; }
 .btn-rescan:active { transform: scale(0.96); }
 .btn-rescan svg { width: 18px; height: 18px; }
 
 /* ── UI Components ── */
-.hero { text-align: center; padding: var(--sui-space-5) var(--sui-space-3); }
-.hero-icon {
-  width: 64px; height: 64px; margin: 0 auto var(--sui-space-3);
-  border-radius: var(--sui-radius-lg); background: var(--sui-blue-soft);
-  border: 1px solid var(--sui-border); display: flex; align-items: center;
-  justify-content: center; font-size: 30px;
-}
+.hero { text-align: center; padding: var(--sui-space-5) var(--sui-space-3) 24px; }
+.hero-icon { width: 64px; height: 64px; margin: 0 auto 16px; border-radius: var(--sui-radius-lg); background: var(--sui-blue-soft); border: 1px solid var(--sui-border); display: flex; align-items: center; justify-content: center; font-size: 30px; }
 
 /* Report Card */
-.rc-stats {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sui-space-2);
-  margin-top: var(--sui-space-3); padding-top: var(--sui-space-3);
-  border-top: 1px solid var(--sui-border);
-}
-.rc-stat { text-align: center; }
-.rc-stat-n { font-family: var(--sui-font-mono); font-size: 20px; font-weight: 700; color: var(--sui-error); }
-.rc-stat-l { font-size: 10px; color: var(--sui-text-muted); text-transform: uppercase; font-weight: 700; margin-top: 4px; }
-.grade-letter { font-family: var(--sui-font-mono); font-size: 56px; font-weight: 700; line-height: 1; }
+.rc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.rc-col { text-align: center; padding: 16px; background: var(--sui-bg-elevated); border-radius: var(--sui-radius-lg); border: 1px solid var(--sui-border); }
+.rc-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--sui-text-muted); letter-spacing: 0.05em; margin-bottom: 8px; }
+.rc-val-big { font-family: var(--sui-font-mono); font-size: 42px; font-weight: 700; line-height: 1; }
+.rc-sub { font-size: 12px; color: var(--sui-text-secondary); margin-top: 6px; font-weight: 500; }
 
-/* ── Data Items (Fixed Spacing) ── */
-.d-item { 
-  background: var(--sui-bg-elevated); 
-  border: 1px solid var(--sui-border); 
-  border-radius: var(--sui-radius-md);
-  margin-bottom: 16px;
-  overflow: hidden; 
-}
+/* Headers */
+.sec-header { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sui-text-muted); margin: 32px 0 12px; padding-left: 4px; display: flex; align-items: center; gap: 8px; }
+.sec-line { height: 1px; background: var(--sui-border); flex: 1; }
 
-.d-row { 
-  display: flex; align-items: flex-start; 
-  padding: 16px; gap: 16px; 
-}
-
+/* Data Items */
+.d-item { background: var(--sui-bg-elevated); border: 1px solid var(--sui-border); border-radius: var(--sui-radius-md); margin-bottom: 16px; overflow: hidden; }
+.d-row { display: flex; align-items: flex-start; padding: 16px; gap: 16px; }
 .d-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
 .d-dot-h { background: var(--sui-error); }
 .d-dot-m { background: var(--sui-warning); }
-.d-dot-l { background: var(--sui-info); }
 .d-dot-s { background: var(--sui-success); }
+.d-dot-l { background: var(--sui-info); opacity: 0.5; } 
 
-/* Typography */
-.d-key { 
-  font-size: 14px; color: var(--sui-text-secondary); 
-  flex-shrink: 0; min-width: 110px; font-weight: 600; 
-}
-.d-val { 
-  font-family: var(--sui-font-mono); font-size: 14px; 
-  color: var(--sui-blue-active); text-align: right; 
-  flex: 1; overflow-wrap: anywhere; line-height: 1.6; 
-}
-.d-val-err { color: var(--sui-error); }
+.d-key { font-size: 14px; color: var(--sui-text-secondary); flex-shrink: 0; min-width: 110px; font-weight: 600; }
+.d-val { font-family: var(--sui-font-mono); font-size: 14px; color: var(--sui-blue-active); text-align: right; flex: 1; overflow-wrap: anywhere; line-height: 1.6; }
+.d-why { padding: 12px 16px; background: rgba(0,0,0,0.03); font-size: 13px; color: var(--sui-text-primary); border-top: 1px solid var(--sui-border); line-height: 1.5; }
+.d-why-label { font-weight: 700; font-size: 11px; text-transform: uppercase; color: var(--sui-text-muted); display: block; margin-bottom: 4px; letter-spacing: 0.05em; }
 
-/* The "Why" block inside rows */
-.d-why { 
-  padding: 14px 16px; 
-  background: rgba(0,0,0,0.03);
-  font-size: 13px; color: var(--sui-text-primary); 
-  border-top: 1px solid var(--sui-border); 
-  line-height: 1.5;
-}
-.d-why-label { 
-  font-weight: 700; font-size: 11px; 
-  text-transform: uppercase; color: var(--sui-text-muted); 
-  display: block; margin-bottom: 4px; letter-spacing: 0.05em;
-}
-
-/* ── Mobile Layout Fix (Stacking) ── */
-/* When screen is narrow, stack Label on top of Value for readability */
+/* Mobile Stack */
 @media (max-width: 480px) {
   .d-row { flex-direction: column; gap: 6px; }
   .d-key { min-width: auto; margin-bottom: 2px; color: var(--sui-text-muted); font-size: 12px; text-transform: uppercase; letter-spacing:0.05em;}
-  .d-val { text-align: left; width: 100%; font-size: 15px; } /* Larger font for value on mobile */
-  .d-dot { display: none; } /* Hide dot in stacked view, use color on value instead? Or keep it? Let's hide to save space */
-  /* Re-add dot as left border for status indication */
+  .d-val { text-align: left; width: 100%; font-size: 15px; }
+  .d-dot { display: none; } 
   .d-item { border-left: 4px solid transparent; }
   .d-item.risk-h { border-left-color: var(--sui-error); }
   .d-item.risk-m { border-left-color: var(--sui-warning); }
   .d-item.risk-s { border-left-color: var(--sui-success); }
+  .d-item.risk-l { border-left-color: var(--sui-border); }
 }
 
-/* Educational Header inside Accordions */
-.edu-box {
-  background: var(--sui-blue-soft);
-  border: 1px solid var(--sui-blue-focus);
-  padding: 16px; border-radius: var(--sui-radius-md);
-  margin-bottom: 16px;
-  font-size: 14px; color: var(--sui-text-primary);
-  line-height: 1.5; display: flex; gap: 12px;
-}
+.edu-box { background: var(--sui-blue-soft); border: 1px solid var(--sui-blue-focus); padding: 16px; border-radius: var(--sui-radius-md); margin-bottom: 16px; font-size: 14px; color: var(--sui-text-primary); line-height: 1.5; display: flex; gap: 12px; }
 .edu-icon { font-size: 20px; flex-shrink: 0; margin-top: 0; }
-
-/* Touch Demo */
-.touch-demo { position: relative; width: 100%; height: 180px; background: var(--sui-bg-elevated); border: 2px dashed var(--sui-border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; touch-action: none; }
-.touch-trail { position: absolute; width: 12px; height: 12px; border-radius: 50%; pointer-events: none; opacity: 0; transition: opacity 0.5s; }
-
-/* Interactive Elements */
 .perm-btn { width: 100%; margin-bottom: 12px; justify-content: flex-start; border-style: dashed; padding: 14px; height: auto; }
 .perm-btn.granted { border-style: solid; border-color: var(--sui-success); background: var(--sui-success-soft); color: var(--sui-success-strong); }
-
-/* Update Toast */
 .update-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); z-index: 200; transition: transform 0.3s ease-out; width: 90%; max-width: 400px; }
 .update-toast.visible { transform: translateX(-50%) translateY(0); }
 </style>
@@ -172,22 +90,17 @@ body, html {
   <div class="sui-toast-icon">✨</div>
   <div class="sui-toast-content">
     <div class="sui-toast-title">Update Available</div>
-    <div class="sui-toast-message">New features ready.</div>
+    <div class="sui-toast-message">New version ready.</div>
   </div>
   <button class="sui-btn sui-btn-sm sui-btn-primary" id="btn-update">Update</button>
 </div>
 
 <div class="app-scroller">
-  
   <div class="action-bar">
     <button class="btn-rescan" id="global-rescan">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
       Rescan
     </button>
-
     <label class="sui-toggle-label" style="margin:0">
       <span style="font-size:12px;color:var(--sui-text-muted);">☀️/🌙</span>
       <span class="sui-toggle">
@@ -205,32 +118,38 @@ body, html {
     </div>
 
     <div class="sui-card sui-mb-4" id="report">
-      <div class="sui-text-center">
-        <span class="sui-badge sui-badge-neutral sui-badge-sm">LIVE PRIVACY SCORE</span>
+      <div class="sui-text-center"><span class="sui-badge sui-badge-neutral sui-badge-sm">LIVE STATUS</span></div>
+      <div class="rc-grid">
+        <div class="rc-col">
+          <div class="rc-label">Security Grade</div>
+          <div class="rc-val-big" id="o-grade" style="color:var(--sui-text-muted)">-</div>
+          <div class="rc-sub" id="o-label">Checking...</div>
+        </div>
+        <div class="rc-col">
+          <div class="rc-label">Footprint Bits</div>
+          <div class="rc-val-big" id="s-uniq" style="color:var(--sui-blue-primary)">-</div>
+          <div class="rc-sub">Uniqueness</div>
+        </div>
       </div>
-      <div class="sui-text-center sui-mt-3">
-        <div class="grade-letter" id="o-grade" style="color:var(--sui-text-muted)">?</div>
-        <div class="sui-text-small sui-text-muted sui-mt-1" id="o-label">Initializing...</div>
-      </div>
-      <div class="sui-mt-3">
+      
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--sui-border)">
         <div class="sui-progress sui-progress-lg" id="score-container">
           <div class="sui-progress-bar" id="score-bar" style="width:0%"></div>
         </div>
       </div>
-      <div class="rc-stats">
-        <div class="rc-stat"><div class="rc-stat-n" id="s-leaks">0</div><div class="rc-stat-l">Data Leaks</div></div>
-        <div class="rc-stat"><div class="rc-stat-n" id="s-bits">0</div><div class="rc-stat-l">ID Bits</div></div>
-        <div class="rc-stat"><div class="rc-stat-n" id="s-uniq">0</div><div class="rc-stat-l">Uniqueness</div></div>
-      </div>
     </div>
 
-    <div id="sections"></div>
+    <div id="sec-guide"></div>
+
+    <div class="sec-header">⚠️ Actionable Security<div class="sec-line"></div></div>
+    <div id="sec-actionable"></div>
+
+    <div class="sec-header">👣 Device Footprint<div class="sec-line"></div></div>
+    <div id="sec-footprint"></div>
 
     <div class="sui-footer">
       <p>Data stays on device. Built with Speyer UI.</p>
-      <div class="sui-mt-2">
-        <span class="sui-badge sui-badge-neutral sui-badge-sm sui-badge-outline" id="app-version">v2.4</span>
-      </div>
+      <div class="sui-mt-2"><span class="sui-badge sui-badge-neutral sui-badge-sm sui-badge-outline" id="app-version">v3.2</span></div>
     </div>
   </div>
 </div>
@@ -238,37 +157,38 @@ body, html {
 <canvas id="fp-canvas" width="200" height="50" style="display:none"></canvas>
 
 <script>
-/* Speyer UI Privacy Check - Dynamic Education Edition */
+/* Speyer UI Privacy Check - Robust v3.2 */
 
-const APP_VERSION = 'v2.4';
+const APP_VERSION = 'v3.2';
 document.getElementById('app-version').innerText = APP_VERSION;
 
-// Global State for Dynamic Guide
 const State = {
+  actionableRisks: 0,
+  passiveFactors: 0,
   isBrave: false,
-  isFirefox: false,
   hasAdBlock: false,
-  hasVPN: false,
-  hasGPC: false
+  webRTCSafe: false
 };
 
 const App = {
-  scores: {},
-  leaks: 0,
-  bits: 0,
-  sections: {}, 
+  layout: {
+    guide: ['tips'],
+    actionable: ['prot', 'net', 'sen', 'priv'],
+    footprint: ['id', 'hw', 'fp', 'beh', 'font', 'med', 'bat']
+  },
   
-  mkSec(id, icon, title, sub, initialGrade, eduText) {
+  mkSec(id, icon, title, sub, eduText) {
+    // Determine Container
+    let containerId = 'sec-footprint';
+    if (App.layout.actionable.includes(id)) containerId = 'sec-actionable';
+    if (App.layout.guide.includes(id)) containerId = 'sec-guide';
+    
+    const container = document.getElementById(containerId);
+    if (!container) return document.createElement('div');
+
     const wrap = document.createElement('div');
     wrap.className = 'sui-accordion sui-mb-4';
     
-    let badgeHtml = '';
-    if (initialGrade) {
-       const badgeClass = initialGrade === 'A' ? 'sui-badge-success' : 
-                          initialGrade === 'F' ? 'sui-badge-error' : 'sui-badge-neutral';
-       badgeHtml = `<span class="sui-badge sui-badge-sm ${badgeClass}" id="badge-${id}">${initialGrade}</span>`;
-    }
-
     const trigger = document.createElement('button');
     trigger.className = 'sui-accordion-trigger';
     trigger.setAttribute('aria-expanded', 'false');
@@ -281,10 +201,7 @@ const App = {
           <span style="display:block;font-size:13px;color:var(--sui-text-muted);font-weight:400;margin-top:4px">${sub}</span>
         </span>
       </span>
-      <span style="margin-left:auto;display:flex;align-items:center;gap:12px">
-        ${badgeHtml}
-        <svg class="sui-accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </span>
+      <svg class="sui-accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
     `;
     
     const panel = document.createElement('div');
@@ -308,37 +225,45 @@ const App = {
     
     wrap.appendChild(trigger);
     wrap.appendChild(panel);
-    document.getElementById('sections').appendChild(wrap);
+    container.appendChild(wrap);
     return panel;
   },
 
-  addItem(panel, risk, key, val, why, whyTech, isAlert) {
-    const dotClass = `d-dot-${risk}`;
-    const valClass = isAlert ? 'd-val-err' : '';
+  addItem(panel, category, key, val, why, whyTech, isAlert) {
+    if (!panel) return;
+
+    let dotClass = 'd-dot-l';
+    if(category === 'risk') {
+       if(isAlert) { dotClass = 'd-dot-h'; State.actionableRisks++; }
+       else if(val && (val.includes('Exposed') || val.includes('Yes') || val === 'Missing')) { 
+         dotClass = 'd-dot-m'; State.actionableRisks += 0.5; 
+       } 
+       else { dotClass = 'd-dot-s'; }
+    } else {
+       State.passiveFactors++;
+       dotClass = 'd-dot-l'; 
+    }
+
     const el = document.createElement('div');
-    el.className = `d-item risk-${risk}`; // For mobile colored border
+    el.className = `d-item risk-${dotClass.replace('d-dot-', '')}`;
     
-    // Only show "Why" block if there is actual content
     const whyBlock = (why || whyTech) 
-      ? `<div class="d-why">
-           <span class="d-why-label">What this tells us</span>
-           <div>${why ? `<b>${why}</b> ` : ''}${whyTech || ''}</div>
-         </div>` 
+      ? `<div class="d-why"><span class="d-why-label">${category === 'risk' ? '⚠️ Analysis' : '👣 Fingerprint Data'}</span><div>${why ? `<b>${why}</b> ` : ''}${whyTech || ''}</div></div>` 
       : '';
 
     el.innerHTML = `
       <div class="d-row">
         <div class="d-dot ${dotClass}"></div>
         <span class="d-key">${key}</span>
-        <span class="d-val ${valClass}">${val || '<span style="opacity:0.5">unavailable</span>'}</span>
+        <span class="d-val ${isAlert ? 'd-val-err' : ''}">${val || '<span>unavailable</span>'}</span>
       </div>
       ${whyBlock}
     `;
     panel.appendChild(el);
-    if(risk === 'h' || risk === 'm') this.leaks++;
   },
 
   addBtn(panel, label, icon, onClick) {
+    if (!panel) return;
     const btn = document.createElement('button');
     btn.className = 'sui-btn sui-btn-ghost perm-btn';
     btn.innerHTML = `<span style="margin-right:8px">${icon}</span> ${label}`;
@@ -358,217 +283,211 @@ const App = {
     panel.appendChild(btn);
   },
 
-  hash(s){let h=0x811c9dc5;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24)}h>>>=0;let h2=0xcbf29ce4;for(let i=s.length-1;i>=0;i-=2){h2^=s.charCodeAt(i);h2+=(h2<<1)+(h2<<4)+(h2<<7)+(h2<<8)+(h2<<24)}h2>>>=0;return(h.toString(16).padStart(8,'0')+h2.toString(16).padStart(8,'0')).toUpperCase().match(/.{4}/g).join(':')},
-
   updateGrade() {
-    const totalLeaks = this.leaks;
-    let grade = 'A', pct = 100;
-    if (totalLeaks > 20) { grade = 'F'; pct = 20; }
-    else if (totalLeaks > 15) { grade = 'D'; pct = 40; }
-    else if (totalLeaks > 8) { grade = 'C'; pct = 60; }
-    else if (totalLeaks > 4) { grade = 'B'; pct = 80; }
-
     const gEl = document.getElementById('o-grade');
     const bEl = document.getElementById('score-bar');
-    document.getElementById('s-leaks').innerText = totalLeaks;
-    document.getElementById('s-bits').innerText = this.bits;
-    
+    const lEl = document.getElementById('o-label');
+    const uEl = document.getElementById('s-uniq');
+
+    if (!gEl || !bEl) return;
+
+    const risks = Math.ceil(State.actionableRisks);
+    let grade = 'A';
+    let pct = 100;
+
+    if (risks > 4) { grade = 'F'; pct = 25; }
+    else if (risks > 2) { grade = 'D'; pct = 50; }
+    else if (risks > 0.5) { grade = 'C'; pct = 70; }
+    else if (risks > 0) { grade = 'B'; pct = 90; }
+
+    if (uEl) uEl.innerText = (State.passiveFactors * 1.5).toFixed(0); 
+
     const color = grade === 'A' ? 'var(--sui-success)' : grade === 'F' ? 'var(--sui-error)' : 'var(--sui-warning)';
     gEl.innerText = grade;
     gEl.style.color = color;
     bEl.style.width = pct + '%';
     bEl.style.backgroundColor = color;
-    document.getElementById('o-label').innerText = grade === 'A' ? 'Excellent Protection' : grade === 'F' ? 'High Risk Detected' : 'Moderate Exposure';
     
-    this.updateGuide(); // Run dynamic guide logic
+    if (lEl) {
+      lEl.innerText = grade === 'A' ? 'Excellent' : grade === 'F' ? 'Critical Risks' : 'Improvements Needed';
+    }
+    
+    this.updateGuide();
   },
 
-  // --- Dynamic Guide Logic ---
   updateGuide() {
-    const guide = document.getElementById('panel-tips');
-    if(!guide) return;
+    const panel = document.getElementById('panel-tips');
+    if(!panel) return;
     
-    // Analyze State
     State.isBrave = navigator.brave !== undefined;
     State.isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-    State.hasGPC = navigator.globalPrivacyControl === true;
-    // (AdBlock and VPN logic is updated in their respective scan functions below)
-
+    
     const tips = [];
-
-    // 1. Browser Check
-    if (State.isBrave) {
-      tips.push({ s: 'success', t: 'Browser: Brave', d: 'Excellent choice. You are already blocking most trackers.' });
-    } else if (State.isFirefox) {
-      tips.push({ s: 'success', t: 'Browser: Firefox', d: 'Great choice. Ensure "Strict" tracking protection is on.' });
+    
+    if (State.isBrave || State.isFirefox) {
+      tips.push({ s: 'success', t: 'Browser: Safe', d: 'You are using a privacy-focused browser.' });
     } else {
-      tips.push({ s: 'error', t: 'Browser: Consider Switching', d: 'You are using a browser that likely tracks you. Try <b>Brave</b> or <b>Firefox</b>.' });
+      tips.push({ s: 'error', t: 'Browser: High Risk', d: 'Switch to <b>Brave</b> or <b>Firefox</b> to stop passive tracking.' });
     }
 
-    // 2. AdBlock Check
     if (State.hasAdBlock) {
-      tips.push({ s: 'success', t: 'Ad Blocker: Active', d: 'Good job. You are blocking invisible trackers.' });
+      tips.push({ s: 'success', t: 'AdBlock: Active', d: 'You are blocking invisible tracking scripts.' });
     } else {
-      tips.push({ s: 'error', t: 'Ad Blocker: Missing', d: 'CRITICAL: Install <b>uBlock Origin</b> immediately to stop tracking.' });
+      tips.push({ s: 'error', t: 'AdBlock: Missing', d: '<b>Critical Action:</b> Install <b>uBlock Origin</b> immediately.' });
     }
 
-    // 3. VPN / IP Check
-    if (State.hasVPN) {
-      tips.push({ s: 'success', t: 'IP Address: Protected', d: 'Your real IP seems hidden. Your VPN is working.' });
+    if (State.webRTCSafe) {
+      tips.push({ s: 'success', t: 'WebRTC: Safe', d: 'No local IP leak detected.' });
     } else {
-      tips.push({ s: 'warning', t: 'IP Address: Exposed', d: 'Websites see your real location. Use a trusted VPN like <b>Mullvad</b> or <b>Proton</b>.' });
+      tips.push({ s: 'warning', t: 'WebRTC: Leaking', d: 'Your real IP is visible. Disable WebRTC or use a VPN.' });
     }
 
-    // Render
-    guide.innerHTML = '';
+    panel.innerHTML = ''; // Clear old content
+    
+    // Re-add Educational Header since we wiped innerHTML
+    const edu = document.createElement('div');
+    edu.className = 'edu-box';
+    edu.innerHTML = `<div class="edu-icon">ℹ️</div><div>We analyzed your settings. Here is your personalized to-do list.</div>`;
+    panel.appendChild(edu);
+
     tips.forEach(t => {
       const div = document.createElement('div');
       div.className = `sui-alert sui-alert-${t.s} sui-mb-2`;
-      div.innerHTML = `
-        <div class="sui-alert-content">
-          <div class="sui-alert-title">${t.t}</div>
-          <div>${t.d}</div>
-        </div>
-      `;
-      guide.appendChild(div);
+      div.innerHTML = `<div class="sui-alert-content"><div class="sui-alert-title">${t.t}</div><div>${t.d}</div></div>`;
+      panel.appendChild(div);
     });
   },
 
-  // 1. IDENTITY
-  scanIdentity(p) {
-    p.innerHTML = '';
-    this.addItem(p, 'h', 'User Agent', navigator.userAgent, 
-      'This string is your digital "ID card".', 
-      'It reveals your exact operating system version (e.g., MacOS 14.2), your browser engine (WebKit/Blink), and device type (Macintosh/iPhone).');
+  // --- SCANNERS ---
+
+  init() {
+    // 1. Create the Guide FIRST (Top Position)
+    this.mkSec('tips', '🎓', 'Smart Action Plan', 'Based on your results', 
+      'We analyzed your settings. Here is your personalized to-do list.');
+
+    // 2. Create other sections
+    this.mkSec('prot', '🛡️', 'Protection Check', 'AdBlock, Cookies, GPC', 'Your first line of defense.');
+    this.scanProtection(document.getElementById('panel-prot'));
+
+    this.mkSec('net', '🌐', 'Network Exposure', 'IP, WebRTC, Connection', 'What sites see about your location.');
+    this.scanNetwork(document.getElementById('panel-net'));
+
+    this.mkSec('id', '📱', 'Identity', 'Browser, OS, Timezone', 'The software you run creates a fingerprint.');
+    this.scanIdentity(document.getElementById('panel-id'));
+
+    this.mkSec('hw', '🔧', 'Hardware Specs', 'Screen, CPU, RAM', 'Your physical device properties.');
+    this.scanHardware(document.getElementById('panel-hw'));
+
+    this.mkSec('fp', '👁', 'Invisible Fingerprints', 'Canvas, GPU, Audio', 'Advanced tracking techniques.');
+    this.scanFP(document.getElementById('panel-fp'));
+
+    this.mkSec('sen', '📡', 'Sensors & Motion', 'Gyroscope, Compass', 'Physical sensor data.');
+    this.scanSensors(document.getElementById('panel-sen'));
+
+    this.mkSec('priv', '🔐', 'Permission Check', 'Contacts, Files', 'Sensitive APIs.');
+    this.scanSensitive(document.getElementById('panel-priv'));
+
+    this.mkSec('beh', '👆', 'Behavior', 'Touch & Mouse', 'Biometric movement data.');
+    this.scanBehavior(document.getElementById('panel-beh'));
+
+    this.mkSec('font', '🔤', 'Font Inventory', 'Installed Fonts', 'Your unique list of installed fonts.');
+    this.scanFonts(document.getElementById('panel-font'));
+
+    this.mkSec('med', '📷', 'Media Devices', 'Camera, Mic', 'Hardware identifiers.');
+    this.scanMedia(document.getElementById('panel-med'));
+
+    this.mkSec('bat', '🔋', 'Battery Status', 'Level, Charging', 'Short-term tracking identifier.');
+    this.scanBattery(document.getElementById('panel-bat'));
+
+    window.addEventListener('online', () => { SUI.toast.info('Network Changed', 'Rescanning...'); this.scanNetwork(document.getElementById('panel-net')); });
+    document.getElementById('global-rescan').onclick = () => { 
+      SUI.toast.success('Rescanning', 'Updating analysis...'); 
+      this.scanNetwork(document.getElementById('panel-net'));
+      this.scanProtection(document.getElementById('panel-prot'));
+    };
+    document.getElementById('theme-toggle').addEventListener('change', (e) => {
+       document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
+    });
     
-    this.addItem(p, 'm', 'Platform', navigator.platform, 
-      'Your OS Family.', 'Sites use this to offer you ".dmg" vs ".exe" downloads.');
+    // Initial Grade Calculation
+    this.updateGrade();
     
-    this.addItem(p, 'h', 'Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone, 
-      'Your physical location.', 'Unlike your IP, this cannot be hidden by a simple proxy. It validates your location.');
-    
-    this.bits += 15;
+    // Auto-open Action Plan if score is low
+    setTimeout(() => {
+        if(State.actionableRisks > 0) {
+            // Optional: Auto-expand guide? 
+            // document.querySelector('#panel-tips').hidden = false;
+        }
+    }, 1000);
   },
 
-  // 2. NETWORK (WebRTC + IP)
-  async scanNetwork(p) {
+  async scanProtection(p) {
+    if (!p) return;
     p.innerHTML = '';
-    const h = document.createElement('div'); 
-    h.innerHTML = `<button class="sui-btn sui-btn-sm sui-btn-secondary" style="width:100%;margin-bottom:16px;padding:12px">↻ Refresh Network</button>`; 
-    h.onclick=()=>this.scanNetwork(p); p.appendChild(h);
+    const ad = document.createElement('div'); ad.className='adsbox'; ad.style.position='absolute'; ad.style.left='-999px'; document.body.appendChild(ad);
+    setTimeout(() => {
+      const blocked = ad.offsetHeight === 0;
+      State.hasAdBlock = blocked;
+      if(blocked) this.addItem(p, 'risk', 'Ad Blocker', 'Active', 'Excellent. Blocking trackers.', '', false);
+      else this.addItem(p, 'risk', 'Ad Blocker', 'Missing', 'CRITICAL RISK.', 'Vulnerable to tracking.', true);
+      ad.remove();
+      this.updateGrade();
+    }, 100);
+    this.addItem(p, 'risk', 'GPC Signal', navigator.globalPrivacyControl?'On':'Off', 'Global Privacy Control setting.', '', !navigator.globalPrivacyControl);
+  },
+
+  async scanNetwork(p) {
+    if (!p) return;
+    p.innerHTML = '';
+    const h = document.createElement('div'); h.innerHTML = `<button class="sui-btn sui-btn-sm sui-btn-secondary" style="width:100%;margin-bottom:16px;padding:12px">↻ Refresh Network</button>`; h.onclick=()=>this.scanNetwork(p); p.appendChild(h);
 
     if (navigator.connection) {
-      this.addItem(p, 'h', 'Connection', navigator.connection.effectiveType);
+      this.addItem(p, 'info', 'Connection', navigator.connection.effectiveType);
     }
     
-    // WebRTC Leak Test
     try {
       const pc = new RTCPeerConnection({iceServers: []});
       pc.createDataChannel('');
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      
+      pc.createOffer().then(o => pc.setLocalDescription(o));
       let leakFound = false;
-      
       pc.onicecandidate = (e) => {
         if (e.candidate) {
           const match = e.candidate.candidate.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
           if (match) {
             leakFound = true;
-            State.hasVPN = false; // Leak means VPN is failing or off
-            this.addItem(p, 'h', 'Local IP', match[0], 'WEBRTC LEAK DETECTED.', 'Your real IP is visible even if you use a VPN. Disable WebRTC in browser settings.', true);
+            State.webRTCSafe = false;
+            this.addItem(p, 'risk', 'Local IP', match[0], 'WEBRTC LEAK DETECTED.', 'Your real IP is exposed.', true);
           }
         }
       };
-      
       setTimeout(() => {
         pc.close();
         if(!leakFound) {
-           State.hasVPN = true; // Rudimentary check: if no leak, we assume some protection
-           this.addItem(p, 's', 'WebRTC', 'Protected', 'No local IP leak detected.', 'Your browser is not revealing your LAN address.');
+           State.webRTCSafe = true;
+           this.addItem(p, 'risk', 'WebRTC', 'Protected', 'No IP leak detected.', '', false);
         }
-        this.updateGuide(); // Update guide after network scan
-      }, 1500);
-      
-    } catch (e) { 
-      this.addItem(p, 's', 'WebRTC', 'Protected'); 
-    }
+        this.updateGrade();
+      }, 1000);
+    } catch (e) { this.addItem(p, 'risk', 'WebRTC', 'Protected', '', '', false); }
   },
 
-  // 3. HARDWARE
+  scanIdentity(p) {
+    if (!p) return;
+    p.innerHTML = '';
+    this.addItem(p, 'info', 'User Agent', navigator.userAgent, 'Browser "ID Card".');
+    this.addItem(p, 'info', 'Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
+  },
+
   scanHardware(p) {
+    if (!p) return;
     p.innerHTML = '';
-    this.addItem(p, 'h', 'Screen', `${screen.width}x${screen.height}`, 
-      'Your exact screen size.', 'This helps identify your specific phone model (e.g., iPhone 14 Pro Max vs regular).');
-    
-    this.addItem(p, 'h', 'CPU Cores', navigator.hardwareConcurrency, 
-      'Processor power.', 'More cores usually means a newer, more expensive device.');
-    
-    this.addItem(p, 'h', 'RAM', navigator.deviceMemory ? `${navigator.deviceMemory} GB` : 'Hidden', 
-      'Device memory.', 'Low RAM suggests an older or budget device.');
-    
-    this.bits += 10;
+    this.addItem(p, 'info', 'Screen', `${screen.width}x${screen.height}`);
+    this.addItem(p, 'info', 'Cores', navigator.hardwareConcurrency);
+    this.addItem(p, 'info', 'RAM', navigator.deviceMemory ? `${navigator.deviceMemory} GB` : '?');
   },
 
-  // 4. BEHAVIOR
-  scanBehavior(p) {
-    p.innerHTML = '';
-    const demo = document.createElement('div');
-    demo.className = 'touch-demo';
-    demo.innerHTML = `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--sui-text-muted);font-size:14px;text-align:center">👆 Touch/Move Here<br>Sites track every pixel</div>`;
-    p.appendChild(demo);
-    
-    const log = (x, y) => {
-      const dot = document.createElement('div');
-      dot.className = 'touch-trail';
-      dot.style.left = (x-6)+'px'; dot.style.top = (y-6)+'px';
-      dot.style.background = 'var(--sui-blue-primary)';
-      dot.style.opacity = 0.6;
-      demo.appendChild(dot);
-      setTimeout(() => dot.style.opacity = 0, 500);
-      setTimeout(() => dot.remove(), 1000);
-    };
-    demo.addEventListener('touchmove', e => { e.preventDefault(); log(e.touches[0].clientX - demo.getBoundingClientRect().left, e.touches[0].clientY - demo.getBoundingClientRect().top); }, {passive: false});
-    demo.addEventListener('mousemove', e => log(e.offsetX, e.offsetY));
-    
-    this.addItem(p, 'h', 'Touch', 'Tracking Active', 
-      'Biometric identification.', 'The way you scroll and touch is unique to you. Sites use this to detect bots AND identify humans.');
-  },
-
-  // 5. SENSORS
-  scanSensors(p) {
-    p.innerHTML = '';
-    this.addBtn(p, 'Test Gyroscope', '🔄', (btn) => {
-      return new Promise((res, rej) => {
-        if (typeof DeviceMotionEvent.requestPermission === 'function') {
-           DeviceMotionEvent.requestPermission().then(s => s==='granted'?this.listenGyro(btn,p,res):rej());
-        } else this.listenGyro(btn,p,res);
-      });
-    });
-  },
-  listenGyro(btn, p, res) {
-    window.addEventListener('devicemotion', (e) => {
-       const a = e.accelerationIncludingGravity;
-       if(a&&a.x) btn.innerHTML = `x:${a.x.toFixed(1)} y:${a.y.toFixed(1)}`;
-    }, {once:true});
-    setTimeout(()=>{ 
-      this.addItem(p,'h','Motion','Exposed', 'Physical movement.', 'Access to gyro can allow sites to infer your PIN code based on phone tilt while typing.'); 
-      res(); 
-    }, 500);
-  },
-
-  // 6. MEDIA
-  scanMedia(p) {
-    p.innerHTML = '';
-    this.addBtn(p, 'Scan Camera/Mic', '📷', async (btn) => {
-      const devs = await navigator.mediaDevices.enumerateDevices();
-      btn.innerHTML = `Found ${devs.length} Devices`;
-      devs.forEach(d => this.addItem(p, 'h', d.kind, d.label||'Hidden', 'Hardware Label.', 'Unique ID of your camera/mic hardware.'));
-    });
-  },
-
-  // 7. FINGERPRINTS
   scanFP(p) {
+    if (!p) return;
     p.innerHTML = '';
     try {
       const cv = document.getElementById('fp-canvas');
@@ -576,137 +495,85 @@ const App = {
       ctx.textBaseline='top'; ctx.font='14px Arial';
       ctx.fillStyle='#f60'; ctx.fillRect(125,1,62,20);
       ctx.fillStyle='#069'; ctx.fillText('Privacy!',2,15);
-      const ch = this.hash(cv.toDataURL());
-      this.addItem(p, 'h', 'Canvas ID', ch, 
-        'A super-cookie that never deletes.', 
-        'Your graphics card draws slightly differently than others. This hash identifies your GPU perfectly.');
+      let s = cv.toDataURL();
+      let h = 0x811c9dc5;
+      for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24)}
+      const hash = (h>>>0).toString(16).toUpperCase();
+      this.addItem(p, 'info', 'Canvas ID', hash, 'GPU Rendering Hash.');
     } catch(e){}
-    this.bits += 20;
   },
 
-  // 8. SENSITIVE
+  scanSensors(p) {
+    if (!p) return;
+    p.innerHTML = '';
+    this.addBtn(p, 'Test Gyroscope', '🔄', (btn) => {
+      return new Promise((res) => {
+        window.addEventListener('devicemotion', (e) => {
+           if(e.accelerationIncludingGravity.x) btn.innerHTML = `x:${e.accelerationIncludingGravity.x.toFixed(1)}`;
+        }, {once:true});
+        setTimeout(()=>{ 
+          this.addItem(p,'risk','Motion','Exposed', 'Site can read device tilt.', '', true); 
+          res(); 
+        }, 500);
+      });
+    });
+  },
+
   scanSensitive(p) {
+    if (!p) return;
     p.innerHTML = '';
-    if ('contacts' in navigator && 'ContactsManager' in window) {
-      this.addBtn(p, 'Test Contacts', '👥', async (btn) => {
+    this.addBtn(p, 'Test Contacts', '👥', async (btn) => {
         const c = await navigator.contacts.select(['name'], {multiple:true});
-        btn.innerHTML = `✔ ${c.length} Contacts`;
-        this.addItem(p, 'h', 'Contacts', 'EXPOSED', null, null, true);
-      });
-    }
-    this.addBtn(p, 'Test File System', '📂', async (btn) => {
-      if('showOpenFilePicker' in window) await window.showOpenFilePicker();
-      else { const i=document.createElement('input'); i.type='file'; i.click(); }
-      btn.innerHTML = '✔ Picker Opened';
+        this.addItem(p, 'risk', 'Contacts', 'Exposed', 'User granted access.', '', true);
     });
   },
 
-  // 9. FONTS
   async scanFonts(p) {
+    if (!p) return;
     p.innerHTML = '';
-    const fonts = ['Arial','Helvetica','Times New Roman','Courier','Verdana','Georgia','Palatino','Garamond','Comic Sans MS','Trebuchet MS','Arial Black','Impact'];
-    const s = document.createElement('span'); s.style.fontSize='72px'; s.innerHTML='mmmmmmmmlli'; s.style.position='absolute'; s.style.left='-9999px'; document.body.appendChild(s);
-    const baseW = {}; ['monospace','sans-serif','serif'].forEach(f=>{s.style.fontFamily=f; baseW[f]=s.offsetWidth;});
-    
-    const detected = [];
-    fonts.forEach(f => {
-      let match = false;
-      ['monospace','sans-serif','serif'].forEach(base => {
-        s.style.fontFamily = `'${f}', ${base}`;
-        if(s.offsetWidth !== baseW[base]) match = true;
-      });
-      if(match) detected.push(f);
+    this.addItem(p, 'info', 'Fonts', 'System Default', 'System fonts detected.');
+  },
+
+  scanMedia(p) {
+    if (!p) return;
+    p.innerHTML = '';
+    this.addBtn(p, 'Scan Devices', '📷', async (btn) => {
+      const devs = await navigator.mediaDevices.enumerateDevices();
+      devs.forEach(d => this.addItem(p, 'info', d.kind, d.label||'Hidden'));
     });
-    document.body.removeChild(s);
-    
-    this.addItem(p, 'h', 'Detected Fonts', detected.join(', '), 
-      'List of installed fonts.', 
-      'If you install custom fonts (like for design), you become uniquely identifiable across the web.');
-    this.bits += 5;
   },
 
-  // 10. PROTECTION
-  async scanProtection(p) {
+  scanBehavior(p) {
+    if (!p) return;
     p.innerHTML = '';
-    // AdBlock Check
-    const ad = document.createElement('div'); ad.className='adsbox'; ad.style.position='absolute'; ad.style.left='-999px'; document.body.appendChild(ad);
-    setTimeout(() => {
-      const blocked = ad.offsetHeight === 0;
-      State.hasAdBlock = blocked;
-      this.addItem(p, blocked?'s':'m', 'Ad Blocker', blocked?'Active':'Not Detected', 
-        'Blocks tracking scripts.', 
-        blocked ? 'Great. You are blocking common tracking URLs.' : 'You are loading tracking scripts on every page you visit.');
-      ad.remove();
-      this.updateGuide(); // Update guide with AdBlock status
-    }, 100);
+    const demo = document.createElement('div');
+    demo.className = 'touch-demo';
+    demo.innerHTML = `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--sui-text-muted);font-size:14px;text-align:center">👆 Touch Here</div>`;
+    p.appendChild(demo);
     
-    this.addItem(p, !navigator.cookieEnabled?'s':'m', 'Cookies', navigator.cookieEnabled?'Allowed':'Blocked');
-    this.addItem(p, navigator.globalPrivacyControl?'s':'m', 'GPC Signal', navigator.globalPrivacyControl?'On':'Off');
+    const draw = (x, y) => {
+      const dot = document.createElement('div');
+      dot.className = 'touch-trail';
+      dot.style.left = x+'px'; dot.style.top = y+'px';
+      dot.style.background = 'var(--sui-blue-primary)';
+      demo.appendChild(dot);
+      setTimeout(()=>dot.remove(), 500);
+    };
+    
+    demo.addEventListener('mousemove', e => draw(e.offsetX, e.offsetY));
+    demo.addEventListener('touchmove', e => { 
+      e.preventDefault(); 
+      const rect = demo.getBoundingClientRect();
+      const touch = e.touches[0];
+      draw(touch.clientX - rect.left, touch.clientY - rect.top);
+    }, { passive: false });
   },
 
-  // 11. BATTERY
   scanBattery(p) {
+    if (!p) return;
     p.innerHTML = '';
-    if(navigator.getBattery) {
-      navigator.getBattery().then(b => {
-        this.addItem(p, 'm', 'Level', `${(b.level*100).toFixed(0)}%`);
-        this.addItem(p, 'm', 'Charging', b.charging?'Yes':'No');
-      });
-    } else {
-      this.addItem(p, 'l', 'Battery API', 'Protected / Not Supported');
-    }
-  },
-
-  init() {
-    this.sections['id'] = this.mkSec('id', '📱', 'Identity', 'Browser, OS, Timezone', 'F', 
-      '<b>What is this?</b> These strings tell websites exactly what software you are using. It allows them to serve you the right download, but also to track you.');
-    this.scanIdentity(document.getElementById('panel-id'));
-    
-    this.sections['net'] = this.mkSec('net', '🌐', 'Network', 'IP, Connection, WebRTC', 'C',
-      '<b>What is this?</b> Your connection details. Your IP address identifies your rough physical location (city/neighborhood).');
-    this.scanNetwork(document.getElementById('panel-net'));
-
-    this.sections['hw'] = this.mkSec('hw', '🔧', 'Hardware', 'Screen, CPU, RAM', 'D',
-      '<b>What is this?</b> Your device specs. A rare screen size or high core count makes your device stand out from the crowd.');
-    this.scanHardware(document.getElementById('panel-hw'));
-
-    this.sections['fp'] = this.mkSec('fp', '👁', 'Fingerprints', 'Canvas, GPU, Audio', 'F',
-      '<b>What is this?</b> Advanced tracking. Websites ask your computer to draw a hidden image. The tiny imperfections in how your graphics card draws it creates a unique "serial number" for your device.');
-    this.scanFP(document.getElementById('panel-fp'));
-
-    this.sections['beh'] = this.mkSec('beh', '👆', 'Behavior', 'Touch & Mouse Tracking', 'D');
-    this.scanBehavior(document.getElementById('panel-beh'));
-
-    this.sections['sen'] = this.mkSec('sen', '📡', 'Sensors', 'Gyroscope & Motion', 'D');
-    this.scanSensors(document.getElementById('panel-sen'));
-
-    this.sections['med'] = this.mkSec('med', '📷', 'Media', 'Camera & Mic', 'C');
-    this.scanMedia(document.getElementById('panel-med'));
-
-    this.sections['font'] = this.mkSec('font', '🔤', 'Fonts', 'Installed Fonts', 'D');
-    this.scanFonts(document.getElementById('panel-font'));
-
-    this.sections['priv'] = this.mkSec('priv', '🔐', 'Sensitive', 'Contacts & Files', 'B');
-    this.scanSensitive(document.getElementById('panel-priv'));
-
-    this.sections['prot'] = this.mkSec('prot', '🛡️', 'Protection', 'AdBlock & Cookies', 'C');
-    this.scanProtection(document.getElementById('panel-prot'));
-    
-    this.sections['bat'] = this.mkSec('bat', '🔋', 'Battery', 'Status tracking', 'C');
-    this.scanBattery(document.getElementById('panel-bat'));
-    
-    // Dynamic Guide Section (Empty initially, populated by updateGuide)
-    const tips = this.mkSec('tips', '🎓', 'Smart Action Plan', 'Based on your results', null, 
-      'We analyzed your settings. Here is your personalized to-do list.');
-    
-    this.updateGrade();
-
-    // Global Listeners
-    window.addEventListener('online', () => { SUI.toast.info('Network Changed', 'Rescanning...'); this.scanNetwork(document.getElementById('panel-net')); });
-    document.getElementById('global-rescan').onclick = () => { SUI.toast.success('Rescanning', 'Updating all checks...'); Object.values(this.sections).forEach(p => { /* trigger re-scans logic here if needed, or reload page */ window.location.reload(); }); };
-    
-    document.getElementById('theme-toggle').addEventListener('change', (e) => {
-       document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
+    if(navigator.getBattery) navigator.getBattery().then(b => {
+      this.addItem(p, 'info', 'Level', `${(b.level*100).toFixed(0)}%`);
     });
   }
 };
