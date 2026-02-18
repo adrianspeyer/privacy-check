@@ -49,6 +49,10 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 .sec-header { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sui-text-muted); margin: 32px 0 12px; padding-left: 4px; display: flex; align-items: center; gap: 8px; }
 .sec-line { height: 1px; background: var(--sui-border); flex: 1; }
 
+/* Action Plan Box */
+.action-plan { background: var(--sui-bg-card); border: 1px solid var(--sui-border); border-radius: var(--sui-radius-lg); padding: 16px; margin-top: 24px; box-shadow: var(--sui-shadow-sm); }
+.ap-title { font-weight: 700; font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
 /* Data Items */
 .d-item { background: var(--sui-bg-elevated); border: 1px solid var(--sui-border); border-radius: var(--sui-radius-md); margin-bottom: 16px; overflow: hidden; }
 .d-row { display: flex; align-items: flex-start; padding: 16px; gap: 16px; }
@@ -80,7 +84,11 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 .edu-icon { font-size: 20px; flex-shrink: 0; margin-top: 0; }
 .perm-btn { width: 100%; margin-bottom: 12px; justify-content: flex-start; border-style: dashed; padding: 14px; height: auto; }
 .perm-btn.granted { border-style: solid; border-color: var(--sui-success); background: var(--sui-success-soft); color: var(--sui-success-strong); }
-.update-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); z-index: 200; transition: transform 0.3s ease-out; width: 90%; max-width: 400px; }
+.perm-btn.protected { border-style: solid; border-color: var(--sui-success); background: var(--sui-bg-elevated); color: var(--sui-text-secondary); pointer-events: none; }
+
+/* Toast */
+.sui-toast-container { z-index: 2000 !important; top: 80px !important; }
+.update-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); z-index: 2000; transition: transform 0.3s ease-out; width: 90%; max-width: 400px; }
 .update-toast.visible { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
@@ -149,7 +157,7 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 
     <div class="sui-footer">
       <p>Data stays on device. Built with Speyer UI.</p>
-      <div class="sui-mt-2"><span class="sui-badge sui-badge-neutral sui-badge-sm sui-badge-outline" id="app-version">v3.2</span></div>
+      <div class="sui-mt-2"><span class="sui-badge sui-badge-neutral sui-badge-sm sui-badge-outline" id="app-version">v3.5</span></div>
     </div>
   </div>
 </div>
@@ -157,15 +165,24 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 <canvas id="fp-canvas" width="200" height="50" style="display:none"></canvas>
 
 <script>
-/* Speyer UI Privacy Check - Robust v3.2 */
+/* Speyer UI Privacy Check - v3.5 (Persistent State) */
 
-const APP_VERSION = 'v3.2';
+const APP_VERSION = 'v3.5';
 document.getElementById('app-version').innerText = APP_VERSION;
 
+// RiskMap tracks actionable issues (High score = Bad)
+const RiskMap = new Map();
+const FootprintMap = new Map();
+
+// Test Result State (To remember "Success" after rescan)
+const TestResults = {
+  contacts: null, // null = unchecked, 'blocked' = good, 'exposed' = bad
+  files: null
+};
+
 const State = {
-  actionableRisks: 0,
-  passiveFactors: 0,
   isBrave: false,
+  isFirefox: false,
   hasAdBlock: false,
   webRTCSafe: false
 };
@@ -173,12 +190,11 @@ const State = {
 const App = {
   layout: {
     guide: ['tips'],
-    actionable: ['prot', 'net', 'sen', 'priv'],
+    actionable: ['prot', 'net', 'api', 'sen', 'priv'],
     footprint: ['id', 'hw', 'fp', 'beh', 'font', 'med', 'bat']
   },
   
   mkSec(id, icon, title, sub, eduText) {
-    // Determine Container
     let containerId = 'sec-footprint';
     if (App.layout.actionable.includes(id)) containerId = 'sec-actionable';
     if (App.layout.guide.includes(id)) containerId = 'sec-guide';
@@ -229,18 +245,31 @@ const App = {
     return panel;
   },
 
+  // Helper: Wipe risks for a section before re-scanning
+  clearRisks(keys) {
+    keys.forEach(k => RiskMap.delete(k));
+  },
+
   addItem(panel, category, key, val, why, whyTech, isAlert) {
     if (!panel) return;
 
     let dotClass = 'd-dot-l';
+    let riskValue = 0;
+
     if(category === 'risk') {
-       if(isAlert) { dotClass = 'd-dot-h'; State.actionableRisks++; }
-       else if(val && (val.includes('Exposed') || val.includes('Yes') || val === 'Missing')) { 
-         dotClass = 'd-dot-m'; State.actionableRisks += 0.5; 
+       if(isAlert) { 
+         dotClass = 'd-dot-h'; 
+         riskValue = 1;
+       }
+       else if(val && (val.includes('Exposed') || val.includes('Yes') || val === 'Missing' || val.includes('High Risk'))) { 
+         dotClass = 'd-dot-m'; 
+         riskValue = 0.5;
        } 
        else { dotClass = 'd-dot-s'; }
+       
+       RiskMap.set(key, riskValue);
     } else {
-       State.passiveFactors++;
+       FootprintMap.set(key, 1);
        dotClass = 'd-dot-l'; 
     }
 
@@ -262,8 +291,29 @@ const App = {
     panel.appendChild(el);
   },
 
-  addBtn(panel, label, icon, onClick) {
+  // Button that remembers state ("Persistent Success")
+  addBtn(panel, id, label, icon, onClick) {
     if (!panel) return;
+    
+    const resultState = TestResults[id];
+    
+    // If already passed, show static success row instead of button
+    if(resultState === 'blocked') {
+        this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'You successfully denied access.', '', false);
+        return;
+    }
+    
+    // If already failed, show failure
+    if(resultState === 'exposed') {
+        this.addItem(panel, 'risk', label, 'Exposed', 'Access previously granted.', '', true);
+        const reset = document.createElement('button');
+        reset.className = 'sui-btn sui-btn-xs sui-btn-ghost';
+        reset.innerText = 'Retest';
+        reset.onclick = () => { TestResults[id] = null; App.init(); } // Simple reload to reset state
+        panel.appendChild(reset);
+        return;
+    }
+
     const btn = document.createElement('button');
     btn.className = 'sui-btn sui-btn-ghost perm-btn';
     btn.innerHTML = `<span style="margin-right:8px">${icon}</span> ${label}`;
@@ -271,13 +321,20 @@ const App = {
       try {
         btn.classList.add('sui-btn-loading'); 
         await onClick(btn, panel);
+        // If we get here, it succeeded (Exposed)
+        TestResults[id] = 'exposed';
         btn.classList.remove('sui-btn-ghost', 'sui-btn-loading');
         btn.classList.add('granted');
         this.updateGrade(); 
       } catch (e) {
+        // If we get here, it failed (Protected)
         btn.classList.remove('sui-btn-loading');
-        btn.innerHTML = `✕ Denied`;
-        btn.style.color = 'var(--sui-error)';
+        TestResults[id] = 'blocked';
+        
+        // Remove button and replace with Success Item
+        btn.remove();
+        this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'Access Denied.', '', false);
+        this.updateGrade();
       }
     };
     panel.appendChild(btn);
@@ -291,7 +348,10 @@ const App = {
 
     if (!gEl || !bEl) return;
 
-    const risks = Math.ceil(State.actionableRisks);
+    let totalRisk = 0;
+    RiskMap.forEach(v => totalRisk += v);
+    const risks = Math.ceil(totalRisk);
+
     let grade = 'A';
     let pct = 100;
 
@@ -300,7 +360,7 @@ const App = {
     else if (risks > 0.5) { grade = 'C'; pct = 70; }
     else if (risks > 0) { grade = 'B'; pct = 90; }
 
-    if (uEl) uEl.innerText = (State.passiveFactors * 1.5).toFixed(0); 
+    if (uEl) uEl.innerText = (FootprintMap.size * 1.5).toFixed(0); 
 
     const color = grade === 'A' ? 'var(--sui-success)' : grade === 'F' ? 'var(--sui-error)' : 'var(--sui-warning)';
     gEl.innerText = grade;
@@ -319,10 +379,12 @@ const App = {
     const panel = document.getElementById('panel-tips');
     if(!panel) return;
     
-    State.isBrave = navigator.brave !== undefined;
-    State.isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
-    
     const tips = [];
+    
+    // Browser Advice
+    const ua = navigator.userAgent;
+    State.isBrave = navigator.brave !== undefined;
+    State.isFirefox = ua.toLowerCase().includes('firefox');
     
     if (State.isBrave || State.isFirefox) {
       tips.push({ s: 'success', t: 'Browser: Safe', d: 'You are using a privacy-focused browser.' });
@@ -342,9 +404,7 @@ const App = {
       tips.push({ s: 'warning', t: 'WebRTC: Leaking', d: 'Your real IP is visible. Disable WebRTC or use a VPN.' });
     }
 
-    panel.innerHTML = ''; // Clear old content
-    
-    // Re-add Educational Header since we wiped innerHTML
+    panel.innerHTML = '';
     const edu = document.createElement('div');
     edu.className = 'edu-box';
     edu.innerHTML = `<div class="edu-icon">ℹ️</div><div>We analyzed your settings. Here is your personalized to-do list.</div>`;
@@ -365,9 +425,12 @@ const App = {
     this.mkSec('tips', '🎓', 'Smart Action Plan', 'Based on your results', 
       'We analyzed your settings. Here is your personalized to-do list.');
 
-    // 2. Create other sections
     this.mkSec('prot', '🛡️', 'Protection Check', 'AdBlock, Cookies, GPC', 'Your first line of defense.');
     this.scanProtection(document.getElementById('panel-prot'));
+
+    // NEW: Auto-Scan Permissions API
+    this.mkSec('api', '🚦', 'Permissions API', 'Auto-detected settings', 'Settings you have already configured.');
+    this.scanPermissions(document.getElementById('panel-api'));
 
     this.mkSec('net', '🌐', 'Network Exposure', 'IP, WebRTC, Connection', 'What sites see about your location.');
     this.scanNetwork(document.getElementById('panel-net'));
@@ -384,7 +447,7 @@ const App = {
     this.mkSec('sen', '📡', 'Sensors & Motion', 'Gyroscope, Compass', 'Physical sensor data.');
     this.scanSensors(document.getElementById('panel-sen'));
 
-    this.mkSec('priv', '🔐', 'Permission Check', 'Contacts, Files', 'Sensitive APIs.');
+    this.mkSec('priv', '🔐', 'Sensitive Access', 'Contacts, Files', 'Sensitive APIs. Manual check required.');
     this.scanSensitive(document.getElementById('panel-priv'));
 
     this.mkSec('beh', '👆', 'Behavior', 'Touch & Mouse', 'Biometric movement data.');
@@ -400,30 +463,64 @@ const App = {
     this.scanBattery(document.getElementById('panel-bat'));
 
     window.addEventListener('online', () => { SUI.toast.info('Network Changed', 'Rescanning...'); this.scanNetwork(document.getElementById('panel-net')); });
+    
     document.getElementById('global-rescan').onclick = () => { 
       SUI.toast.success('Rescanning', 'Updating analysis...'); 
       this.scanNetwork(document.getElementById('panel-net'));
       this.scanProtection(document.getElementById('panel-prot'));
+      this.scanPermissions(document.getElementById('panel-api'));
+      this.scanIdentity(document.getElementById('panel-id'));
     };
+    
     document.getElementById('theme-toggle').addEventListener('change', (e) => {
        document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
     });
     
-    // Initial Grade Calculation
     this.updateGrade();
-    
-    // Auto-open Action Plan if score is low
-    setTimeout(() => {
-        if(State.actionableRisks > 0) {
-            // Optional: Auto-expand guide? 
-            // document.querySelector('#panel-tips').hidden = false;
-        }
-    }, 1000);
+    setTimeout(() => { if(RiskMap.size > 0) document.querySelector('#panel-tips').hidden = false; }, 1000);
+  },
+
+  // NEW: Permissions API Scanner
+  async scanPermissions(p) {
+    if (!p) return;
+    p.innerHTML = '';
+    this.clearRisks(['Geo Permission', 'Notif Permission', 'Camera Permission', 'Mic Permission']);
+
+    const check = async (name, label) => {
+      try {
+        const result = await navigator.permissions.query({name});
+        const state = result.state; // 'granted', 'denied', 'prompt'
+        let risk = 'risk';
+        let alert = false;
+        let val = state.toUpperCase();
+        
+        if (state === 'granted') { alert = true; val += ' (Exposed)'; }
+        if (state === 'denied') { val += ' (Protected)'; }
+        
+        this.addItem(p, risk, label, val, 'Browser Permission State.', '', alert);
+      } catch(e) {
+        // Not supported in this browser
+      }
+    };
+
+    await check('geolocation', 'Geo Permission');
+    await check('notifications', 'Notif Permission');
+    await check('camera', 'Camera Permission');
+    await check('microphone', 'Mic Permission');
+    this.updateGrade();
   },
 
   async scanProtection(p) {
     if (!p) return;
     p.innerHTML = '';
+    
+    this.clearRisks(['GPC Signal', 'Ad Blocker', 'Cookies']);
+
+    const gpc = navigator.globalPrivacyControl;
+    this.addItem(p, 'risk', 'GPC Signal', gpc?'On':'Off', 'Global Privacy Control setting.', '', !gpc);
+    
+    this.addItem(p, 'risk', 'Cookies', navigator.cookieEnabled ? 'Enabled' : 'Blocked', 'Standard tracking.', '', false);
+
     const ad = document.createElement('div'); ad.className='adsbox'; ad.style.position='absolute'; ad.style.left='-999px'; document.body.appendChild(ad);
     setTimeout(() => {
       const blocked = ad.offsetHeight === 0;
@@ -433,12 +530,14 @@ const App = {
       ad.remove();
       this.updateGrade();
     }, 100);
-    this.addItem(p, 'risk', 'GPC Signal', navigator.globalPrivacyControl?'On':'Off', 'Global Privacy Control setting.', '', !navigator.globalPrivacyControl);
   },
 
   async scanNetwork(p) {
     if (!p) return;
     p.innerHTML = '';
+    
+    this.clearRisks(['Connection', 'Local IP', 'WebRTC']);
+
     const h = document.createElement('div'); h.innerHTML = `<button class="sui-btn sui-btn-sm sui-btn-secondary" style="width:100%;margin-bottom:16px;padding:12px">↻ Refresh Network</button>`; h.onclick=()=>this.scanNetwork(p); p.appendChild(h);
 
     if (navigator.connection) {
@@ -474,7 +573,20 @@ const App = {
   scanIdentity(p) {
     if (!p) return;
     p.innerHTML = '';
-    this.addItem(p, 'info', 'User Agent', navigator.userAgent, 'Browser "ID Card".');
+    this.clearRisks(['Browser Privacy']);
+
+    const ua = navigator.userAgent;
+    State.isBrave = navigator.brave !== undefined;
+    State.isFirefox = ua.toLowerCase().includes('firefox');
+    const isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor) && !State.isBrave;
+    
+    if(isChrome) {
+       this.addItem(p, 'risk', 'Browser Privacy', 'High Risk', 'Standard Chrome tracks extensively.', 'Switch to Brave/Firefox.', false); 
+    } else {
+       this.addItem(p, 'risk', 'Browser Privacy', 'Good', 'Privacy-focused browser detected.', '', false);
+    }
+
+    this.addItem(p, 'info', 'User Agent', ua, 'Browser "ID Card".');
     this.addItem(p, 'info', 'Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
   },
 
@@ -506,7 +618,8 @@ const App = {
   scanSensors(p) {
     if (!p) return;
     p.innerHTML = '';
-    this.addBtn(p, 'Test Gyroscope', '🔄', (btn) => {
+    // Manual Gyro Check
+    this.addBtn(p, 'gyro', 'Test Gyroscope', '🔄', (btn) => {
       return new Promise((res) => {
         window.addEventListener('devicemotion', (e) => {
            if(e.accelerationIncludingGravity.x) btn.innerHTML = `x:${e.accelerationIncludingGravity.x.toFixed(1)}`;
@@ -522,9 +635,18 @@ const App = {
   scanSensitive(p) {
     if (!p) return;
     p.innerHTML = '';
-    this.addBtn(p, 'Test Contacts', '👥', async (btn) => {
+    this.clearRisks(['Contacts', 'Files']);
+    
+    // Explicit manual check buttons
+    this.addBtn(p, 'contacts', 'Test Contacts', '👥', async (btn) => {
         const c = await navigator.contacts.select(['name'], {multiple:true});
         this.addItem(p, 'risk', 'Contacts', 'Exposed', 'User granted access.', '', true);
+    });
+    
+    this.addBtn(p, 'files', 'Test Files', '📂', async (btn) => {
+      if('showOpenFilePicker' in window) await window.showOpenFilePicker();
+      else { const i=document.createElement('input'); i.type='file'; i.click(); }
+      this.addItem(p, 'risk', 'Files', 'Exposed', 'User opened file picker.', '', false);
     });
   },
 
@@ -537,7 +659,7 @@ const App = {
   scanMedia(p) {
     if (!p) return;
     p.innerHTML = '';
-    this.addBtn(p, 'Scan Devices', '📷', async (btn) => {
+    this.addBtn(p, 'media', 'Scan Devices', '📷', async (btn) => {
       const devs = await navigator.mediaDevices.enumerateDevices();
       devs.forEach(d => this.addItem(p, 'info', d.kind, d.label||'Hidden'));
     });
@@ -580,7 +702,7 @@ const App = {
 
 document.addEventListener('DOMContentLoaded', () => App.init());
 
-// PWA Update Logic
+// PWA Logic
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').then(reg => {
     if (reg.waiting) showUpdateToast(reg.waiting);
