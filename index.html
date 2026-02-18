@@ -7,15 +7,18 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Privacy Check">
-<meta name="description" content="Audit your digital footprint. See what your phone reveals.">
+<meta name="description" content="Audit your digital footprint. Adjust settings. Rescan to verify your privacy.">
+
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="icon" href="data:,"> 
+<link rel="icon" href="data:,">
+
 <title>Privacy Check</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@2.0.7/dist/sui-tokens.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@2.0.7/dist/sui-components.min.css">
 <script src="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@2.0.7/dist/sui.min.js" defer></script>
@@ -27,11 +30,48 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 .app-wrap { max-width: 640px; margin: 0 auto; padding: 0 var(--sui-space-3) 160px; }
 
 /* ── Sticky Action Bar ── */
-.action-bar { position: sticky; top: 0; z-index: 999; display: flex; justify-content: space-between; align-items: center; padding: 12px var(--sui-space-3); margin: 0 -16px; padding-left: calc(var(--sui-space-3) + env(safe-area-inset-left)); padding-right: calc(var(--sui-space-3) + env(safe-area-inset-right)); padding-top: calc(12px + env(safe-area-inset-top)); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--sui-border); }
+.action-bar {
+  position: sticky; top: 0; z-index: 999;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px var(--sui-space-3); margin: 0 -16px;
+  padding-left: calc(var(--sui-space-3) + env(safe-area-inset-left));
+  padding-right: calc(var(--sui-space-3) + env(safe-area-inset-right));
+  padding-top: calc(12px + env(safe-area-inset-top));
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--sui-border);
+}
 [data-theme="dark"] .action-bar { background: rgba(11, 15, 26, 0.95); }
-.btn-rescan { background: var(--sui-blue-primary); color: white; border: none; border-radius: 24px; padding: 8px 18px; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: var(--sui-shadow-sm); cursor: pointer; }
-.btn-rescan:active { transform: scale(0.96); }
-.btn-rescan svg { width: 18px; height: 18px; }
+
+.action-left { display: flex; align-items: center; gap: 10px; }
+
+/* Primary button */
+.btn-primary {
+  background: var(--sui-blue-primary); color: white; border: none;
+  border-radius: 24px; padding: 8px 18px;
+  font-size: 15px; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: var(--sui-shadow-sm); cursor: pointer;
+}
+.btn-primary:active { transform: scale(0.96); }
+.btn-primary svg { width: 18px; height: 18px; }
+
+/* Secondary button */
+.btn-secondary {
+  background: var(--sui-bg-elevated);
+  color: var(--sui-text-primary);
+  border: 1px solid var(--sui-border);
+  border-radius: 24px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.btn-secondary:active { transform: scale(0.98); }
+[data-theme="dark"] .btn-secondary { background: rgba(255,255,255,0.06); }
 
 /* ── UI Components ── */
 .hero { text-align: center; padding: var(--sui-space-5) var(--sui-space-3) 24px; }
@@ -55,8 +95,8 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 .d-dot-h { background: var(--sui-error); }
 .d-dot-m { background: var(--sui-warning); }
 .d-dot-s { background: var(--sui-success); }
-.d-dot-l { background: var(--sui-info); opacity: 0.5; } 
-.d-key { font-size: 14px; color: var(--sui-text-secondary); flex-shrink: 0; min-width: 110px; font-weight: 600; }
+.d-dot-l { background: var(--sui-info); opacity: 0.5; }
+.d-key { font-size: 14px; color: var(--sui-text-secondary); flex-shrink: 0; min-width: 130px; font-weight: 600; }
 .d-val { font-family: var(--sui-font-mono); font-size: 14px; color: var(--sui-blue-active); text-align: right; flex: 1; overflow-wrap: anywhere; line-height: 1.6; }
 .d-why { padding: 12px 16px; background: rgba(0,0,0,0.03); font-size: 13px; color: var(--sui-text-primary); border-top: 1px solid var(--sui-border); line-height: 1.5; }
 .d-why-label { font-weight: 700; font-size: 11px; text-transform: uppercase; color: var(--sui-text-muted); display: block; margin-bottom: 4px; letter-spacing: 0.05em; }
@@ -66,7 +106,7 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
   .d-row { flex-direction: column; gap: 6px; }
   .d-key { min-width: auto; margin-bottom: 2px; color: var(--sui-text-muted); font-size: 12px; text-transform: uppercase; letter-spacing:0.05em;}
   .d-val { text-align: left; width: 100%; font-size: 15px; }
-  .d-dot { display: none; } 
+  .d-dot { display: none; }
   .d-item { border-left: 4px solid transparent; }
   .d-item.risk-h { border-left-color: var(--sui-error); }
   .d-item.risk-m { border-left-color: var(--sui-warning); }
@@ -76,9 +116,12 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 
 .edu-box { background: var(--sui-blue-soft); border: 1px solid var(--sui-blue-focus); padding: 16px; border-radius: var(--sui-radius-md); margin-bottom: 16px; font-size: 14px; color: var(--sui-text-primary); line-height: 1.5; display: flex; gap: 12px; }
 .edu-icon { font-size: 20px; flex-shrink: 0; margin-top: 0; }
+
 .perm-btn { width: 100%; margin-bottom: 12px; justify-content: flex-start; border-style: dashed; padding: 14px; height: auto; }
-.perm-btn.granted { border-style: solid; border-color: var(--sui-success); background: var(--sui-success-soft); color: var(--sui-success-strong); }
-.perm-btn.protected { border-style: solid; border-color: var(--sui-success); background: var(--sui-bg-elevated); color: var(--sui-text-secondary); pointer-events: none; }
+
+/* Behavior demo (was missing in v3.5) */
+.touch-demo { position: relative; height: 220px; border: 1px dashed var(--sui-border); border-radius: var(--sui-radius-md); background: var(--sui-bg-card); overflow: hidden; }
+.touch-trail { position: absolute; width: 10px; height: 10px; border-radius: 50%; opacity: 0.85; transform: translate(-50%, -50%); }
 
 /* Toast */
 .sui-toast-container { z-index: 2000 !important; top: 80px !important; }
@@ -100,10 +143,19 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 
 <div class="app-scroller">
   <div class="action-bar">
-    <button class="btn-rescan" id="global-rescan">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-      Rescan
-    </button>
+    <div class="action-left">
+      <button class="btn-primary" id="global-rescan" type="button" aria-label="Rescan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        Rescan
+      </button>
+
+      <button class="btn-secondary" id="btn-vpn-test" type="button" aria-label="VPN Test">
+        🧪 VPN Test
+      </button>
+    </div>
+
     <label class="sui-toggle-label" style="margin:0">
       <span style="font-size:12px;color:var(--sui-text-muted);">☀️/🌙</span>
       <span class="sui-toggle">
@@ -134,8 +186,9 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
           <div class="rc-sub">Uniqueness</div>
         </div>
       </div>
+
       <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--sui-border)">
-        <div class="sui-progress sui-progress-lg" id="score-container">
+        <div class="sui-progress sui-progress-lg">
           <div class="sui-progress-bar" id="score-bar" style="width:0%"></div>
         </div>
       </div>
@@ -151,7 +204,7 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 
     <div class="sui-footer">
       <p>Data stays on device. Built with Speyer UI.</p>
-      <div class="sui-mt-2"><span class="sui-badge sui-badge-neutral sui-badge-sm sui-badge-outline" id="app-version">v3.7</span></div>
+      <div class="sui-mt-2"><span class="sui-badge sui-badge-neutral sui-badge-sm sui-badge-outline" id="app-version">v3.8</span></div>
     </div>
   </div>
 </div>
@@ -159,74 +212,111 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 <canvas id="fp-canvas" width="200" height="50" style="display:none"></canvas>
 
 <script>
-/* Privacy Check — v3.7 (grade + adblock + webRTC fixes) */
+/* Privacy Check — v3.8 */
 
-const APP_VERSION = 'v3.7';
+const APP_VERSION = 'v3.8';
 document.getElementById('app-version').innerText = APP_VERSION;
 
+// --- Storage ---
 const LS_KEY = 'privacy_check_state_v1';
+const safeJSONParse = (s) => { try { return JSON.parse(s); } catch(e){ return null; } };
+const loadState = () => safeJSONParse(localStorage.getItem(LS_KEY)) || {};
+const saveState = (obj) => { try { localStorage.setItem(LS_KEY, JSON.stringify(obj)); } catch(e){} };
 
-const RiskMap = new Map();      // actionable grade inputs
-const FootprintMap = new Map(); // uniqueness only
+const Persist = loadState();
+Persist.theme = Persist.theme || null;
+Persist.tests = Persist.tests || {};     // permission tests
+Persist.vpn = Persist.vpn || {           // vpn/ip test
+  lastIp: null,
+  prevIp: null,
+  lastAt: null,
+  prevAt: null,
+  status: 'not-tested', // not-tested | first-capture | unchanged | changed
+  source: null          // netlify | ipify
+};
+
+const RiskMap = new Map();
+const FootprintMap = new Map();
+
+const SEV = { none:0, low:0.25, medium:0.5, high:1 };
 
 const State = {
   isBrave: false,
   isFirefox: false,
-  hasAdBlock: false,
-  webRTCSafe: true
+  hasAdBlock: false
 };
 
+// Safe toast (does nothing if SUI not ready yet)
 const Toast = {
-  info(t, m){ try { window.SUI?.toast?.info?.(t, m); } catch(e) {} },
-  success(t, m){ try { window.SUI?.toast?.success?.(t, m); } catch(e) {} },
-  warning(t, m){ try { window.SUI?.toast?.warning?.(t, m); } catch(e) {} },
-  error(t, m){ try { window.SUI?.toast?.error?.(t, m); } catch(e) {} }
+  info(t,m){ try { window.SUI?.toast?.info?.(t,m); } catch(e){} },
+  success(t,m){ try { window.SUI?.toast?.success?.(t,m); } catch(e){} },
+  warning(t,m){ try { window.SUI?.toast?.warning?.(t,m); } catch(e){} },
+  error(t,m){ try { window.SUI?.toast?.error?.(t,m); } catch(e){} }
 };
 
-function loadState(){
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch(e){ return {}; }
-}
-function saveState(obj){
-  try { localStorage.setItem(LS_KEY, JSON.stringify(obj)); } catch(e){}
-}
-
-const Persist = loadState();
-const TestResults = Persist.tests || {
-  contacts: null,
-  files: null
-};
-const ThemeState = Persist.theme || null;
-
+// --- Theme ---
 function setTheme(mode){
   document.documentElement.setAttribute('data-theme', mode);
   Persist.theme = mode;
   saveState(Persist);
 }
 
+function initTheme(){
+  const toggle = document.getElementById('theme-toggle');
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const mode = Persist.theme || (prefersDark ? 'dark' : 'light');
+  setTheme(mode);
+  toggle.checked = (mode === 'dark');
+  toggle.addEventListener('change', (e) => setTheme(e.target.checked ? 'dark' : 'light'));
+}
+
 function isPrivateIPv4(ip){
-  // 10.0.0.0/8
   if (ip.startsWith('10.')) return true;
-  // 192.168.0.0/16
   if (ip.startsWith('192.168.')) return true;
-  // 172.16.0.0 - 172.31.255.255
   if (ip.startsWith('172.')) {
     const n = parseInt(ip.split('.')[1] || '0', 10);
     if (n >= 16 && n <= 31) return true;
   }
-  // 169.254.0.0/16 (link-local)
   if (ip.startsWith('169.254.')) return true;
   return false;
 }
 
-const SEV = { none: 0, low: 0.25, medium: 0.5, high: 1 };
+// --- Public IP fetch ---
+// Netlify-first (uses your own deploy). Fallback to ipify only when not on Netlify.
+const ALLOW_IPIFY_FALLBACK = true;
 
+async function fetchPublicIP(){
+  // 1) Netlify Function (best: your own deploy)
+  try {
+    const r = await fetch('/.netlify/functions/ip', { cache:'no-store' });
+    if (r.ok) {
+      const j = await r.json();
+      if (j && j.ip) return { ip: String(j.ip), source:'netlify' };
+    }
+  } catch(e){}
+
+  // 2) Optional fallback (only when user clicks VPN Test)
+  if (!ALLOW_IPIFY_FALLBACK) throw new Error('IP endpoint unavailable');
+
+  const r2 = await fetch('https://api.ipify.org?format=json', { cache:'no-store' });
+  if (!r2.ok) throw new Error('ipify failed');
+  const j2 = await r2.json();
+  if (!j2 || !j2.ip) throw new Error('ipify missing ip');
+  return { ip: String(j2.ip), source:'ipify' };
+}
+
+function fmtWhen(ts){
+  if (!ts) return '';
+  try { return new Date(ts).toLocaleString(); } catch(e){ return ''; }
+}
+
+// --- App ---
 const App = {
+  _bound: false,
+
   layout: {
     guide: ['tips'],
-    actionable: ['prot', 'net', 'api', 'priv', 'sen', 'id'],
+    actionable: ['prot', 'api', 'net', 'id', 'sen', 'priv'],
     footprint: ['hw', 'fp', 'beh', 'font', 'med', 'bat']
   },
 
@@ -236,7 +326,12 @@ const App = {
     document.getElementById('sec-footprint').innerHTML = '';
   },
 
-  mkSec(id, icon, title, sub, eduText) {
+  resetMaps(){
+    RiskMap.clear();
+    FootprintMap.clear();
+  },
+
+  mkSec(id, icon, title, sub, eduText, open=false) {
     let containerId = 'sec-footprint';
     if (App.layout.actionable.includes(id)) containerId = 'sec-actionable';
     if (App.layout.guide.includes(id)) containerId = 'sec-guide';
@@ -249,8 +344,16 @@ const App = {
 
     const trigger = document.createElement('button');
     trigger.className = 'sui-accordion-trigger';
-    trigger.setAttribute('aria-expanded', 'false');
     trigger.style.padding = '20px';
+
+    const panel = document.createElement('div');
+    panel.className = 'sui-accordion-panel';
+    panel.id = `panel-${id}`;
+    panel.style.paddingTop = '12px';
+
+    trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    panel.hidden = !open;
+
     trigger.innerHTML = `
       <span style="display:flex;align-items:center;gap:var(--sui-space-3);flex:1">
         <span style="font-size:24px">${icon}</span>
@@ -259,14 +362,10 @@ const App = {
           <span style="display:block;font-size:13px;color:var(--sui-text-muted);font-weight:400;margin-top:4px">${sub}</span>
         </span>
       </span>
-      <svg class="sui-accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <svg class="sui-accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
     `;
-
-    const panel = document.createElement('div');
-    panel.className = 'sui-accordion-panel';
-    panel.hidden = true;
-    panel.id = `panel-${id}`;
-    panel.style.paddingTop = '12px';
 
     if (eduText) {
       const edu = document.createElement('div');
@@ -287,29 +386,21 @@ const App = {
     return panel;
   },
 
-  clearRisks(keys) { keys.forEach(k => RiskMap.delete(k)); },
-
-  addItem(panel, category, key, val, why, whyTech, severity = 'none') {
+  addItem(panel, category, key, val, why, whyTech, severity='none') {
     if (!panel) return;
 
     let dotClass = 'd-dot-l';
-    let sevVal = 0;
 
     if (category === 'risk') {
-      sevVal = SEV[severity] ?? 0;
-      RiskMap.set(key, sevVal);
+      RiskMap.set(key, SEV[severity] ?? 0);
       dotClass =
         severity === 'high' ? 'd-dot-h' :
         severity === 'medium' ? 'd-dot-m' :
-        severity === 'low' ? 'd-dot-l' :
-        'd-dot-s';
+        severity === 'low' ? 'd-dot-l' : 'd-dot-s';
     } else {
       FootprintMap.set(key, 1);
       dotClass = 'd-dot-l';
     }
-
-    const el = document.createElement('div');
-    el.className = `d-item risk-${dotClass.replace('d-dot-', '')}`;
 
     const whyBlock = (why || whyTech)
       ? `<div class="d-why">
@@ -318,6 +409,8 @@ const App = {
          </div>`
       : '';
 
+    const el = document.createElement('div');
+    el.className = `d-item risk-${dotClass.replace('d-dot-', '')}`;
     el.innerHTML = `
       <div class="d-row">
         <div class="d-dot ${dotClass}"></div>
@@ -332,29 +425,15 @@ const App = {
   addBtn(panel, id, label, icon, onClick) {
     if (!panel) return;
 
-    // Ensure tracked
-    if (!(id in TestResults)) TestResults[id] = null;
+    const state = Persist.tests[id] || null;
 
-    const resultState = TestResults[id];
-
-    if (resultState === 'blocked') {
+    // Render persistent states
+    if (state === 'blocked') {
       this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'You successfully denied access.', '', 'none');
       return;
     }
-
-    if (resultState === 'exposed') {
-      this.addItem(panel, 'risk', label, 'Exposed', 'Access previously granted.', '', 'high');
-      const reset = document.createElement('button');
-      reset.className = 'sui-btn sui-btn-xs sui-btn-ghost';
-      reset.innerText = 'Retest';
-      reset.onclick = () => {
-        TestResults[id] = null;
-        Persist.tests = TestResults;
-        saveState(Persist);
-        Toast.info('Retest', 'Ready.');
-        App.init(); // rebuild cleanly
-      };
-      panel.appendChild(reset);
+    if (state === 'exposed') {
+      this.addItem(panel, 'risk', label, 'Exposed', 'Access was granted previously.', '', 'high');
       return;
     }
 
@@ -364,34 +443,27 @@ const App = {
 
     btn.onclick = async () => {
       btn.classList.add('sui-btn-loading');
-
       try {
         const res = await onClick(btn, panel);
 
-        // If user cancelled, do not mark exposed
+        // If user cancels, do NOT mark exposed
         if (res && res.status === 'cancelled') {
           btn.classList.remove('sui-btn-loading');
           Toast.info('Cancelled', 'No access granted.');
           return;
         }
 
-        // exposed
-        TestResults[id] = 'exposed';
-        Persist.tests = TestResults;
+        Persist.tests[id] = 'exposed';
         saveState(Persist);
-
-        btn.classList.remove('sui-btn-loading', 'sui-btn-ghost');
-        btn.classList.add('granted');
-        this.updateGrade();
+        btn.classList.remove('sui-btn-loading');
+        Toast.warning('Granted', 'This permission can expose sensitive data.');
+        this.render(); // re-render to show persistent row
       } catch (e) {
-        // blocked/denied OR unsupported — treat as protected
-        TestResults[id] = 'blocked';
-        Persist.tests = TestResults;
+        Persist.tests[id] = 'blocked';
         saveState(Persist);
-
-        btn.remove();
-        this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'Access denied or unavailable.', '', 'none');
-        this.updateGrade();
+        btn.classList.remove('sui-btn-loading');
+        Toast.success('Protected', 'Access denied or unavailable.');
+        this.render();
       }
     };
 
@@ -408,26 +480,17 @@ const App = {
     let total = 0;
     RiskMap.forEach(v => total += (Number(v) || 0));
 
-    // Smooth thresholds (no Math.ceil jumps)
     let grade = 'A';
     if (total >= 4) grade = 'F';
     else if (total >= 3) grade = 'D';
     else if (total >= 2) grade = 'C';
     else if (total >= 1) grade = 'B';
 
-    const pct =
-      grade === 'A' ? 100 :
-      grade === 'B' ? 90 :
-      grade === 'C' ? 70 :
-      grade === 'D' ? 50 : 25;
+    const pct = grade === 'A' ? 100 : grade === 'B' ? 90 : grade === 'C' ? 70 : grade === 'D' ? 50 : 25;
 
     if (uEl) uEl.innerText = (FootprintMap.size * 1.5).toFixed(0);
 
-    const color =
-      grade === 'A' ? 'var(--sui-success)' :
-      grade === 'F' ? 'var(--sui-error)' :
-      'var(--sui-warning)';
-
+    const color = grade === 'A' ? 'var(--sui-success)' : grade === 'F' ? 'var(--sui-error)' : 'var(--sui-warning)';
     gEl.innerText = grade;
     gEl.style.color = color;
     bEl.style.width = pct + '%';
@@ -438,185 +501,68 @@ const App = {
         grade === 'A' ? 'Excellent' :
         grade === 'B' ? 'Good (Minor Fixes)' :
         grade === 'C' ? 'Needs Work' :
-        grade === 'D' ? 'High Risk Setup' :
-        'Critical Risks';
+        grade === 'D' ? 'High Risk Setup' : 'Critical Risks';
     }
-
-    this.updateGuide();
   },
 
-  updateGuide() {
-    const panel = document.getElementById('panel-tips');
-    if (!panel) return;
+  updateGuide(panelTips){
+    if (!panelTips) return;
 
     const tips = [];
+
     const ua = navigator.userAgent || '';
     State.isBrave = navigator.brave !== undefined;
     State.isFirefox = ua.toLowerCase().includes('firefox');
 
     if (State.isBrave || State.isFirefox) {
-      tips.push({ s: 'success', t: 'Browser: Safer Choice', d: 'You are using a privacy-focused browser.' });
+      tips.push({ s:'success', t:'Browser', d:'Privacy-focused browser detected.' });
     } else {
-      tips.push({ s: 'warning', t: 'Browser: Standard Tracking', d: 'For stronger default privacy, consider <b>Brave</b> or <b>Firefox</b>.' });
+      tips.push({ s:'warning', t:'Browser', d:'Consider Brave or Firefox for stronger default privacy.' });
     }
 
     if (State.hasAdBlock) {
-      tips.push({ s: 'success', t: 'AdBlock: Active', d: 'You are blocking many tracking scripts.' });
+      tips.push({ s:'success', t:'Ad Blocking', d:'Many tracking scripts will be blocked.' });
     } else {
-      tips.push({ s: 'error', t: 'AdBlock: Missing', d: '<b>Recommended:</b> Install <b>uBlock Origin</b> (or an equivalent blocker).' });
+      tips.push({ s:'error', t:'Ad Blocking', d:'Install an ad/tracker blocker for a major privacy win.' });
     }
 
-    if (State.webRTCSafe) {
-      tips.push({ s: 'success', t: 'WebRTC: No Public Leak Detected', d: 'This offline test did not detect a public WebRTC IP exposure.' });
-    } else {
-      tips.push({ s: 'warning', t: 'WebRTC: Possible Exposure', d: 'WebRTC may be exposing an address. Consider disabling WebRTC or tightening browser privacy settings.' });
+    // VPN status is only graded after two captures (so it doesn’t punish people who never touch it)
+    if (Persist.vpn.status === 'changed') {
+      tips.push({ s:'success', t:'VPN / Route', d:'Your exit route changed since last check (often a VPN signal).' });
+    } else if (Persist.vpn.status === 'unchanged') {
+      tips.push({ s:'warning', t:'VPN / Route', d:'No route change detected. If you expected VPN, re-check with VPN on.' });
     }
 
-    panel.innerHTML = '';
+    panelTips.innerHTML = '';
     const edu = document.createElement('div');
     edu.className = 'edu-box';
-    edu.innerHTML = `<div class="edu-icon">ℹ️</div><div>We analyzed your settings. Here is your personalized to-do list.</div>`;
-    panel.appendChild(edu);
+    edu.innerHTML = `<div class="edu-icon">ℹ️</div><div>We analyzed your setup. Here’s your quick action plan.</div>`;
+    panelTips.appendChild(edu);
 
     tips.forEach(t => {
       const div = document.createElement('div');
       div.className = `sui-alert sui-alert-${t.s} sui-mb-2`;
       div.innerHTML = `<div class="sui-alert-content"><div class="sui-alert-title">${t.t}</div><div>${t.d}</div></div>`;
-      panel.appendChild(div);
+      panelTips.appendChild(div);
     });
   },
 
-  initTheme() {
-    const toggle = document.getElementById('theme-toggle');
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const mode = ThemeState || (prefersDark ? 'dark' : 'light');
-    setTheme(mode);
-    toggle.checked = (mode === 'dark');
-    toggle.addEventListener('change', (e) => setTheme(e.target.checked ? 'dark' : 'light'));
-  },
-
-  init() {
-    // Prevent duplicate sections if init is called again
-    this.resetUI();
-
-    this.initTheme();
-
-    this.mkSec('tips', '🎓', 'Smart Action Plan', 'Based on your results',
-      'Quick, practical fixes first. Your grade is based on the actionable security checks.');
-
-    this.mkSec('prot', '🛡️', 'Protection Check', 'AdBlock, Cookies, GPC', 'Your first line of defense.');
-    this.scanProtection(document.getElementById('panel-prot'));
-
-    this.mkSec('api', '🚦', 'Permissions API', 'Auto-detected settings', 'Permissions you’ve already configured.');
-    this.scanPermissions(document.getElementById('panel-api'));
-
-    this.mkSec('net', '🌐', 'Network Exposure', 'WebRTC, connection info', 'What sites can infer about your network.');
-    this.scanNetwork(document.getElementById('panel-net'));
-
-    this.mkSec('id', '📱', 'Identity', 'Browser, Timezone', 'Software identity signals.');
-    this.scanIdentity(document.getElementById('panel-id'));
-
-    // Footprint sections (not graded)
-    this.mkSec('hw', '🔧', 'Hardware Specs', 'Screen, CPU, RAM', 'Device properties (uniqueness, not your grade).');
-    this.scanHardware(document.getElementById('panel-hw'));
-
-    this.mkSec('fp', '👁', 'Invisible Fingerprints', 'Canvas', 'Rendering quirks trackers can use.');
-    this.scanFP(document.getElementById('panel-fp'));
-
-    this.mkSec('priv', '🔐', 'Sensitive Access', 'Contacts, Files', 'Manual checks: only runs if you click.');
-    this.scanSensitive(document.getElementById('panel-priv'));
-
-    this.mkSec('sen', '📡', 'Sensors & Motion', 'Motion events', 'Manual check: only runs if you click.');
-    this.scanSensors(document.getElementById('panel-sen'));
-
-    this.mkSec('med', '📷', 'Media Devices', 'Camera, Mic labels', 'Hardware device list (labels may be hidden).');
-    this.scanMedia(document.getElementById('panel-med'));
-
-    this.mkSec('bat', '🔋', 'Battery Status', 'Level, Charging', 'Short-term tracking identifier.');
-    this.scanBattery(document.getElementById('panel-bat'));
-
-    document.getElementById('global-rescan').onclick = () => {
-      Toast.success('Rescanning', 'Updating analysis...');
-      this.scanProtection(document.getElementById('panel-prot'));
-      this.scanPermissions(document.getElementById('panel-api'));
-      this.scanNetwork(document.getElementById('panel-net'));
-      this.scanIdentity(document.getElementById('panel-id'));
-    };
-
-    this.updateGrade();
-  },
-
-  async scanPermissions(p) {
-    if (!p) return;
-    p.innerHTML = '';
-    this.clearRisks(['Geo Permission', 'Notif Permission', 'Camera Permission', 'Mic Permission']);
-
-    if (!('permissions' in navigator) || !navigator.permissions?.query) {
-      this.addItem(p, 'info', 'Permissions API', 'Unavailable', 'This browser does not expose permission states via API.');
-      return;
-    }
-
-    const check = async (name, label, severityIfGranted) => {
-      try {
-        const result = await navigator.permissions.query({ name });
-        const state = result.state; // 'granted', 'denied', 'prompt'
-        let sev = 'none';
-        let val = state.toUpperCase();
-
-        if (state === 'granted') { val += ' (Exposed)'; sev = severityIfGranted; }
-        if (state === 'denied') { val += ' (Protected)'; sev = 'none'; }
-        if (state === 'prompt') { val += ' (Not Granted)'; sev = 'none'; }
-
-        this.addItem(
-          p,
-          'risk',
-          label,
-          val,
-          'Permission state detected by your browser.',
-          '',
-          sev
-        );
-      } catch (e) {
-        this.addItem(p, 'info', label, 'Not Supported', 'This permission type isn’t exposed in this browser.');
-      }
-    };
-
-    await check('geolocation', 'Geo Permission', 'high');
-    await check('notifications', 'Notif Permission', 'medium');
-    await check('camera', 'Camera Permission', 'high');
-    await check('microphone', 'Mic Permission', 'high');
-
-    this.updateGrade();
-  },
+  // ---------------- Scanners ----------------
 
   async scanProtection(p) {
-    if (!p) return;
     p.innerHTML = '';
-    this.clearRisks(['GPC Signal', 'Ad Blocker', 'Cookies']);
 
     const gpc = !!navigator.globalPrivacyControl;
-    this.addItem(
-      p,
-      'risk',
-      'GPC Signal',
-      gpc ? 'On' : 'Off',
-      'Global Privacy Control is a “Do Not Sell/Share” signal supported by many browsers and sites.',
-      '',
-      gpc ? 'none' : 'medium'
-    );
+    this.addItem(p,'risk','GPC Signal', gpc ? 'On' : 'Off',
+      'Global Privacy Control can signal “Do Not Sell/Share”.',
+      '', gpc ? 'none' : 'medium');
 
     const cookiesOn = !!navigator.cookieEnabled;
-    this.addItem(
-      p,
-      'risk',
-      'Cookies',
-      cookiesOn ? 'Enabled' : 'Blocked',
-      'Cookies can be used for cross-site tracking unless blocked or partitioned.',
-      '',
-      cookiesOn ? 'medium' : 'none'
-    );
+    this.addItem(p,'risk','Cookies', cookiesOn ? 'Enabled' : 'Blocked',
+      'Cookies can be used for tracking unless blocked/partitioned.',
+      '', cookiesOn ? 'medium' : 'none');
 
-    // Reliable adblock detection bait
+    // More reliable adblock bait
     const bait = document.createElement('div');
     bait.className = 'adsbox ad ads-banner adsbygoogle ad-placement';
     bait.style.cssText = 'width:12px;height:12px;position:absolute;left:-9999px;top:0;background:#f00;';
@@ -636,49 +582,70 @@ const App = {
 
     State.hasAdBlock = blocked;
 
-    this.addItem(
-      p,
-      'risk',
-      'Ad Blocker',
-      blocked ? 'Active' : 'Missing',
-      blocked ? 'Great: many tracking scripts will be blocked.' : 'Trackers and ad scripts will load normally.',
-      blocked ? '' : 'Installing an ad blocker is one of the highest-impact privacy wins.',
-      blocked ? 'none' : 'high'
-    );
+    this.addItem(p,'risk','Ad Blocker', blocked ? 'Active' : 'Missing',
+      blocked ? 'Great: many trackers will be blocked.' : 'Trackers will load normally.',
+      blocked ? '' : 'Installing a blocker is one of the highest-impact privacy wins.',
+      blocked ? 'none' : 'high');
+  },
 
-    this.updateGrade();
+  async scanPermissions(p) {
+    p.innerHTML = '';
+
+    if (!navigator.permissions?.query) {
+      this.addItem(p,'info','Permissions API','Unavailable','This browser does not expose permission states via API.');
+      return;
+    }
+
+    const check = async (name,label,sevIfGranted) => {
+      try {
+        const r = await navigator.permissions.query({ name });
+        const s = r.state;
+        let val = s.toUpperCase();
+        let sev = 'none';
+
+        if (s === 'granted'){ val += ' (Exposed)'; sev = sevIfGranted; }
+        if (s === 'denied'){ val += ' (Protected)'; sev = 'none'; }
+        if (s === 'prompt'){ val += ' (Not Granted)'; sev = 'none'; }
+
+        this.addItem(p,'risk',label,val,'Permission state detected by your browser.','',sev);
+      } catch(e) {
+        this.addItem(p,'info',label,'Not Supported','This permission type isn’t exposed in this browser.');
+      }
+    };
+
+    await check('geolocation','Geo Permission','high');
+    await check('notifications','Notif Permission','medium');
+    await check('camera','Camera Permission','high');
+    await check('microphone','Mic Permission','high');
   },
 
   async scanNetwork(p) {
-    if (!p) return;
     p.innerHTML = '';
-    this.clearRisks(['WebRTC Public Exposure']);
 
-    const h = document.createElement('div');
-    h.innerHTML = `<button class="sui-btn sui-btn-sm sui-btn-secondary" style="width:100%;margin-bottom:16px;padding:12px">↻ Refresh Network</button>`;
-    h.onclick = () => this.scanNetwork(p);
-    p.appendChild(h);
-
-    if (navigator.connection) {
-      this.addItem(p, 'info', 'Connection', navigator.connection.effectiveType || 'unknown', 'Approximate connection type.');
+    // Connection (informational)
+    if (navigator.connection?.effectiveType) {
+      this.addItem(p,'info','Connection', navigator.connection.effectiveType, 'Rough network category (not precise).');
     }
 
-    // Offline-only WebRTC test (no STUN servers)
-    // This cannot reliably detect "VPN on/off". It can only show local candidate behavior.
+    // WebRTC: detect if a PUBLIC candidate appears (risk)
+    // Note: behavior varies by browser/privacy settings.
+    let webRtcPublic = false;
+    let candidates = new Set();
+
     try {
       const pc = new RTCPeerConnection({ iceServers: [] });
       pc.createDataChannel('x');
 
-      const found = { ips: new Set(), mdns: new Set() };
-
       pc.onicecandidate = (e) => {
-        if (!e.candidate || !e.candidate.candidate) return;
-        const cand = e.candidate.candidate;
-        const parts = cand.split(' ');
-        const addr = parts[4] || '';
+        if (!e.candidate?.candidate) return;
 
-        if (/^\d{1,3}(\.\d{1,3}){3}$/.test(addr)) found.ips.add(addr);
-        if (addr.endsWith('.local')) found.mdns.add(addr);
+        // IPv4 extraction
+        const m4 = e.candidate.candidate.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
+        if (m4) candidates.add(m4[0]);
+
+        // Basic IPv6 extraction (not exhaustive)
+        const m6 = e.candidate.candidate.match(/([a-f0-9:]+:+)+[a-f0-9]+/i);
+        if (m6 && m6[0].includes(':')) candidates.add(m6[0]);
       };
 
       const offer = await pc.createOffer();
@@ -687,83 +654,136 @@ const App = {
       await new Promise(r => setTimeout(r, 900));
       pc.close();
 
-      // Show what we saw
-      if (found.ips.size) {
-        const ips = Array.from(found.ips).slice(0, 5);
+      // Evaluate public IPv4 only (safe + simple)
+      const ips = Array.from(candidates).filter(x => x.includes('.'));
+      if (ips.length) {
         const anyPublic = ips.some(ip => !isPrivateIPv4(ip));
-        const anyPrivate = ips.some(ip => isPrivateIPv4(ip));
+        webRtcPublic = anyPublic;
 
-        if (anyPublic) {
-          State.webRTCSafe = false;
-          this.addItem(
-            p,
-            'risk',
-            'WebRTC Public Exposure',
-            ips.join(', '),
-            'A public IP address was observed in WebRTC candidates.',
-            'This can be used to infer your network identity. Consider disabling WebRTC or tightening privacy settings.',
-            'high'
-          );
-        } else if (anyPrivate) {
-          State.webRTCSafe = true;
-          this.addItem(
-            p,
-            'info',
-            'WebRTC Candidates',
-            ips.join(', '),
-            'Local/private network addresses are commonly visible via WebRTC.',
-            'This offline test does not contact external servers, so it cannot confirm VPN status.',
-          );
-        }
-      } else if (found.mdns.size) {
-        State.webRTCSafe = true;
         this.addItem(
           p,
-          'info',
+          webRtcPublic ? 'risk' : 'info',
           'WebRTC Candidates',
-          'mDNS Hostnames',
-          'This browser is using mDNS hostnames instead of raw local IPs.',
-          'That’s generally better for local-IP privacy.'
+          ips.slice(0, 6).join(', '),
+          webRtcPublic ? 'A public IP appeared in WebRTC candidates.' : 'Candidates observed (often local/private).',
+          webRtcPublic ? 'Consider disabling WebRTC or using stricter browser privacy settings.' : '',
+          webRtcPublic ? 'high' : 'none'
         );
       } else {
-        State.webRTCSafe = true;
-        this.addItem(
-          p,
-          'info',
-          'WebRTC',
-          'No candidates observed',
-          'Some browsers limit candidate visibility in certain contexts.',
-          'This is not a definitive “VPN check.”'
-        );
+        this.addItem(p,'info','WebRTC Candidates','None observed','Some browsers restrict candidate visibility.');
       }
-
-      // Explicit expectation-setter
-      this.addItem(
-        p,
-        'info',
-        'VPN Status',
-        'Not measurable offline',
-        'Detecting VPN on/off reliably requires checking your public IP via an external service (this tool does not do that).'
-      );
-
-    } catch (e) {
-      State.webRTCSafe = true;
-      this.addItem(
-        p,
-        'info',
-        'WebRTC',
-        'Unavailable',
-        'WebRTC APIs are blocked or unsupported in this browser.'
-      );
+    } catch(e) {
+      this.addItem(p,'info','WebRTC','Unavailable','WebRTC is blocked or unsupported in this browser.');
     }
 
-    this.updateGrade();
+    // VPN / Route Test (user-initiated)
+    const status = Persist.vpn.status;
+    const last = Persist.vpn.lastIp;
+    const prev = Persist.vpn.prevIp;
+
+    const statusLabel =
+      status === 'changed' ? 'Changed (Likely VPN / network change)' :
+      status === 'unchanged' ? 'Unchanged' :
+      status === 'first-capture' ? 'Captured once (toggle VPN and test again)' :
+      'Not tested';
+
+    // Only grade AFTER two captures
+    if (status === 'unchanged') {
+      this.addItem(p,'risk','VPN / Route', statusLabel,
+        'No change detected since last capture.',
+        'If you expected VPN, enable it and press VPN Test again.',
+        'low');
+    } else if (status === 'changed') {
+      this.addItem(p,'risk','VPN / Route', statusLabel,
+        'Your exit route changed since the last capture.',
+        'This often happens when a VPN is enabled (or when switching networks).',
+        'none');
+    } else {
+      this.addItem(p,'info','VPN / Route', statusLabel,
+        'This test only runs when you press VPN Test.',
+        'It compares two captured public IPs.');
+    }
+
+    this.addItem(
+      p,
+      'info',
+      'Public IP (last)',
+      last ? `${last} · ${fmtWhen(Persist.vpn.lastAt)}${Persist.vpn.source ? ` · ${Persist.vpn.source}` : ''}` : 'Not captured',
+      'Public IP is your “internet-facing” address.'
+    );
+
+    this.addItem(
+      p,
+      'info',
+      'Public IP (previous)',
+      prev ? `${prev} · ${fmtWhen(Persist.vpn.prevAt)}` : '—',
+      'Used to compare whether your exit route changed.'
+    );
+
+    // Controls
+    const controls = document.createElement('div');
+    controls.style.display = 'flex';
+    controls.style.gap = '10px';
+    controls.style.marginTop = '12px';
+
+    const btnCapture = document.createElement('button');
+    btnCapture.className = 'sui-btn sui-btn-sm sui-btn-secondary';
+    btnCapture.style.flex = '1';
+    btnCapture.textContent = 'Capture / Compare IP';
+
+    const btnReset = document.createElement('button');
+    btnReset.className = 'sui-btn sui-btn-sm sui-btn-ghost';
+    btnReset.style.flex = '1';
+    btnReset.textContent = 'Reset VPN Test';
+
+    btnCapture.onclick = async () => {
+      btnCapture.classList.add('sui-btn-loading');
+      try {
+        const { ip, source } = await fetchPublicIP();
+
+        // shift last -> prev
+        Persist.vpn.prevIp = Persist.vpn.lastIp;
+        Persist.vpn.prevAt = Persist.vpn.lastAt;
+
+        Persist.vpn.lastIp = ip;
+        Persist.vpn.lastAt = Date.now();
+        Persist.vpn.source = source;
+
+        if (!Persist.vpn.prevIp) Persist.vpn.status = 'first-capture';
+        else Persist.vpn.status = (Persist.vpn.prevIp === Persist.vpn.lastIp) ? 'unchanged' : 'changed';
+
+        saveState(Persist);
+
+        Toast.success('VPN Test', 'Captured public IP.');
+        await this.render(); // re-render so grade updates
+      } catch(e) {
+        console.error(e);
+        Toast.error('VPN Test', 'IP check failed (Netlify function not available?).');
+      } finally {
+        btnCapture.classList.remove('sui-btn-loading');
+      }
+    };
+
+    btnReset.onclick = async () => {
+      Persist.vpn = { lastIp:null, prevIp:null, lastAt:null, prevAt:null, status:'not-tested', source:null };
+      saveState(Persist);
+      Toast.info('Reset', 'VPN test state cleared.');
+      await this.render();
+    };
+
+    controls.appendChild(btnCapture);
+    controls.appendChild(btnReset);
+    p.appendChild(controls);
+
+    // Add an education note (after controls)
+    const hint = document.createElement('div');
+    hint.className = 'edu-box';
+    hint.innerHTML = `<div class="edu-icon">🧪</div><div><b>How to test:</b> Capture once with VPN off, enable VPN, then press VPN Test again. If the IP changes, we mark it as a likely VPN / route change.</div>`;
+    p.appendChild(hint);
   },
 
   scanIdentity(p) {
-    if (!p) return;
     p.innerHTML = '';
-    this.clearRisks(['Browser Privacy']);
 
     const ua = navigator.userAgent || '';
     State.isBrave = navigator.brave !== undefined;
@@ -771,30 +791,25 @@ const App = {
     const isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor || '') && !State.isBrave;
 
     this.addItem(
-      p,
-      'risk',
-      'Browser Privacy',
+      p,'risk','Browser Privacy',
       isChrome ? 'Standard Chrome' : 'Privacy-Focused (Detected)',
       isChrome ? 'Chrome defaults are less privacy-protective.' : 'A privacy-focused browser was detected.',
-      isChrome ? 'Brave/Firefox tend to reduce passive tracking by default.' : '',
+      isChrome ? 'Brave/Firefox generally reduce passive tracking by default.' : '',
       isChrome ? 'medium' : 'none'
     );
 
-    this.addItem(p, 'info', 'User Agent', ua, 'Browser “ID card” (often unique).');
-    this.addItem(p, 'info', 'Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown');
+    this.addItem(p,'info','User Agent', ua, 'Browser “ID card” (often unique).');
+    this.addItem(p,'info','Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown', 'Timezone can help identify you.');
   },
 
   scanHardware(p) {
-    if (!p) return;
     p.innerHTML = '';
-    this.addItem(p, 'info', 'Screen', `${screen.width}x${screen.height}`);
-    this.addItem(p, 'info', 'Cores', navigator.hardwareConcurrency || 'unknown');
-    this.addItem(p, 'info', 'RAM', navigator.deviceMemory ? `${navigator.deviceMemory} GB` : 'unknown');
-    this.updateGrade();
+    this.addItem(p,'info','Screen', `${screen.width}x${screen.height}`, 'Screen size can help identify a device.');
+    this.addItem(p,'info','CPU Cores', navigator.hardwareConcurrency || 'unknown', 'Hardware signal (not graded).');
+    this.addItem(p,'info','RAM', navigator.deviceMemory ? `${navigator.deviceMemory} GB` : 'unknown', 'Hardware signal (not graded).');
   },
 
   scanFP(p) {
-    if (!p) return;
     p.innerHTML = '';
     try {
       const cv = document.getElementById('fp-canvas');
@@ -806,116 +821,206 @@ const App = {
       let h = 0x811c9dc5;
       for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h += (h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24); }
       const hash = (h>>>0).toString(16).toUpperCase();
-      this.addItem(p, 'info', 'Canvas ID', hash, 'A rendering-based fingerprint signal.');
-    } catch(e){}
-    this.updateGrade();
+      this.addItem(p,'info','Canvas ID', hash, 'Rendering-based fingerprint signal.');
+    } catch(e) {
+      this.addItem(p,'info','Canvas ID','Unavailable','Canvas fingerprint test failed.');
+    }
+  },
+
+  scanBehavior(p) {
+    p.innerHTML = '';
+    const demo = document.createElement('div');
+    demo.className = 'touch-demo';
+    demo.innerHTML = `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--sui-text-muted);font-size:14px;text-align:center">👆 Touch / Move Here</div>`;
+    p.appendChild(demo);
+
+    const draw = (x, y) => {
+      const dot = document.createElement('div');
+      dot.className = 'touch-trail';
+      dot.style.left = x+'px';
+      dot.style.top = y+'px';
+      dot.style.background = 'var(--sui-blue-primary)';
+      demo.appendChild(dot);
+      setTimeout(()=>dot.remove(), 500);
+    };
+
+    demo.addEventListener('mousemove', e => draw(e.offsetX, e.offsetY));
+    demo.addEventListener('touchmove', e => {
+      e.preventDefault();
+      const rect = demo.getBoundingClientRect();
+      const t = e.touches[0];
+      draw(t.clientX - rect.left, t.clientY - rect.top);
+    }, { passive: false });
+
+    this.addItem(p,'info','Demo','Active','Movement data can be captured and modeled over time.');
+  },
+
+  scanFonts(p) {
+    p.innerHTML = '';
+    this.addItem(p, 'info', 'Fonts', 'System Default', 'Font availability can be used for fingerprinting.');
+  },
+
+  scanMedia(p) {
+    p.innerHTML = '';
+    this.addBtn(p, 'media', 'Scan Devices', '📷', async () => {
+      if (!navigator.mediaDevices?.enumerateDevices) throw new Error('MediaDevices not supported');
+      const devs = await navigator.mediaDevices.enumerateDevices();
+      devs.forEach(d => this.addItem(p,'info', d.kind, d.label || 'Hidden', 'Device labels are often hidden until permission is granted.'));
+      return { status:'exposed' };
+    });
+  },
+
+  scanBattery(p) {
+    p.innerHTML = '';
+    if (navigator.getBattery) {
+      navigator.getBattery().then(b => {
+        this.addItem(p,'info','Level', `${(b.level*100).toFixed(0)}%`, 'Battery can be used as a short-lived identifier.');
+      });
+    } else {
+      this.addItem(p,'info','Battery','Unavailable','Battery API not exposed in this browser.');
+    }
   },
 
   scanSensors(p) {
-    if (!p) return;
     p.innerHTML = '';
-
     this.addBtn(p, 'motion', 'Test Motion / Gyroscope', '📡', async () => {
-      // iOS requires permission for motion
-      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-        const resp = await DeviceMotionEvent.requestPermission();
-        if (resp !== 'granted') {
-          this.addItem(p, 'risk', 'Motion', 'Protected (Denied)', 'Motion permission was denied.', '', 'none');
-          this.updateGrade();
-          return { status: 'cancelled' };
+      try {
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+          const resp = await DeviceMotionEvent.requestPermission();
+          if (resp !== 'granted') return { status:'cancelled' };
         }
-      }
+        let got = false;
+        const handler = () => { got = true; };
+        window.addEventListener('devicemotion', handler, { once:true });
+        await new Promise(r => setTimeout(r, 900));
+        window.removeEventListener('devicemotion', handler);
 
-      let gotEvent = false;
-
-      const handler = (e) => {
-        gotEvent = true;
-      };
-
-      window.addEventListener('devicemotion', handler, { once: true });
-
-      await new Promise(r => setTimeout(r, 900));
-      window.removeEventListener('devicemotion', handler);
-
-      if (gotEvent) {
-        this.addItem(p, 'risk', 'Motion', 'Exposed', 'Sites can read device motion signals when allowed.', '', 'medium');
-        this.updateGrade();
-        return { status: 'exposed' };
-      } else {
-        this.addItem(p, 'risk', 'Motion', 'Protected / Unavailable', 'No motion events observed.', 'This may be blocked by browser policy or device settings.', 'none');
-        this.updateGrade();
-        return { status: 'cancelled' };
+        if (got) {
+          this.addItem(p,'risk','Motion','Exposed','Motion sensors can be read when allowed.','', 'medium');
+          return { status:'exposed' };
+        }
+        return { status:'cancelled' };
+      } catch(e) {
+        return { status:'cancelled' };
       }
     });
   },
 
   scanSensitive(p) {
-    if (!p) return;
     p.innerHTML = '';
-    this.clearRisks(['Contacts', 'Files']);
 
     this.addBtn(p, 'contacts', 'Test Contacts', '👥', async () => {
-      if (!navigator.contacts || !navigator.contacts.select) throw new Error('Contacts API not supported');
-
+      if (!navigator.contacts?.select) throw new Error('Contacts API not supported');
       try {
-        await navigator.contacts.select(['name'], { multiple: true });
-        this.addItem(p, 'risk', 'Contacts', 'Exposed', 'You granted access to contacts.', '', 'high');
-        this.updateGrade();
-        return { status: 'exposed' };
-      } catch (e) {
-        if (e && (e.name === 'AbortError' || String(e).toLowerCase().includes('abort'))) {
-          return { status: 'cancelled' };
-        }
+        await navigator.contacts.select(['name'], { multiple:true });
+        this.addItem(p,'risk','Contacts','Exposed','You granted access to contacts.','', 'high');
+        return { status:'exposed' };
+      } catch(e) {
+        if (e && (e.name === 'AbortError' || String(e).toLowerCase().includes('abort'))) return { status:'cancelled' };
         throw e;
       }
     });
 
     this.addBtn(p, 'files', 'Test File Picker', '📂', async () => {
       try {
-        if ('showOpenFilePicker' in window) {
-          await window.showOpenFilePicker();
-        } else {
-          // Fallback: input picker (does not grant continuous access)
-          const i = document.createElement('input');
-          i.type = 'file';
-          i.click();
-        }
-        this.addItem(p, 'risk', 'Files', 'Exposed', 'You opened a file picker (user-initiated access).', '', 'medium');
-        this.updateGrade();
-        return { status: 'exposed' };
-      } catch (e) {
-        if (e && (e.name === 'AbortError' || String(e).toLowerCase().includes('abort'))) {
-          return { status: 'cancelled' };
-        }
+        if ('showOpenFilePicker' in window) await window.showOpenFilePicker();
+        else { const i=document.createElement('input'); i.type='file'; i.click(); }
+        this.addItem(p,'risk','Files','Exposed','You opened a file picker (user-initiated access).','', 'medium');
+        return { status:'exposed' };
+      } catch(e) {
+        if (e && (e.name === 'AbortError' || String(e).toLowerCase().includes('abort'))) return { status:'cancelled' };
         throw e;
       }
     });
   },
 
-  scanMedia(p) {
-    if (!p) return;
-    p.innerHTML = '';
-    this.addBtn(p, 'media', 'Scan Devices', '📷', async () => {
-      if (!navigator.mediaDevices?.enumerateDevices) throw new Error('MediaDevices not supported');
-      const devs = await navigator.mediaDevices.enumerateDevices();
-      devs.forEach(d => this.addItem(p, 'info', d.kind, d.label || 'Hidden', 'Device labels are often hidden until permission is granted.'));
-      this.updateGrade();
-      return { status: 'exposed' };
+  async render(){
+    this.resetUI();
+    this.resetMaps();
+
+    // Guide
+    const tipsPanel = this.mkSec(
+      'tips','🎓','Smart Action Plan','Based on your results',
+      'Your grade is based on actionable security checks.', true
+    );
+
+    // Actionable Security
+    const pProt = this.mkSec('prot','🛡️','Protection Check','AdBlock, Cookies, GPC','Your first line of defense.');
+    await this.scanProtection(pProt);
+
+    const pApi = this.mkSec('api','🚦','Permissions API','Auto-detected settings','Permissions you already configured.');
+    await this.scanPermissions(pApi);
+
+    const pNet = this.mkSec('net','🌐','Network Exposure','WebRTC + VPN Test','Network signals sites can infer.');
+    await this.scanNetwork(pNet);
+
+    const pId = this.mkSec('id','📱','Identity','Browser + Timezone','Software identity signals.');
+    this.scanIdentity(pId);
+
+    const pSen = this.mkSec('sen','📡','Sensors & Motion','Motion test','Only runs when you tap.');
+    this.scanSensors(pSen);
+
+    const pPriv = this.mkSec('priv','🔐','Sensitive Access','Contacts, Files','Only runs when you tap.');
+    this.scanSensitive(pPriv);
+
+    // Footprint
+    const pHw = this.mkSec('hw','🔧','Hardware Specs','Screen, CPU, RAM','Uniqueness signals (not graded).');
+    this.scanHardware(pHw);
+
+    const pFp = this.mkSec('fp','👁','Invisible Fingerprints','Canvas','Rendering quirks trackers can use.');
+    this.scanFP(pFp);
+
+    const pBeh = this.mkSec('beh','👆','Behavior','Touch & Mouse','Biometric-style movement signals.');
+    this.scanBehavior(pBeh);
+
+    const pFont = this.mkSec('font','🔤','Font Inventory','High-level signal','Font presence can be fingerprinting data.');
+    this.scanFonts(pFont);
+
+    const pMed = this.mkSec('med','📷','Media Devices','Camera, Mic','Labels may be hidden until permission.');
+    this.scanMedia(pMed);
+
+    const pBat = this.mkSec('bat','🔋','Battery Status','Level, Charging','Short-term identifier.');
+    this.scanBattery(pBat);
+
+    // Update guide + grade
+    this.updateGuide(tipsPanel);
+    this.updateGrade();
+  },
+
+  bindOnce(){
+    if (this._bound) return;
+    this._bound = true;
+
+    // Rescan: re-render everything safely
+    document.getElementById('global-rescan').addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        Toast.success('Rescanning', 'Updating analysis…');
+        await this.render();
+      } catch(err) {
+        console.error(err);
+        Toast.error('Rescan Failed', 'Check console for details.');
+      }
+    });
+
+    // VPN Test: scroll to Network + run capture/compare
+    document.getElementById('btn-vpn-test').addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        // open Network section (best effort)
+        const netTrigger = document.querySelector('[aria-expanded][class*="sui-accordion-trigger"]');
+        // We won't force open all; the Network section includes its own buttons.
+        Toast.info('VPN Test', 'Open “Network Exposure” and press “Capture / Compare IP”.');
+        const netHeader = document.querySelector('#sec-actionable');
+        if (netHeader) netHeader.scrollIntoView({ behavior:'smooth', block:'start' });
+      } catch(err) {}
     });
   },
 
-  scanBattery(p) {
-    if (!p) return;
-    p.innerHTML = '';
-    if (navigator.getBattery) {
-      navigator.getBattery().then(b => {
-        this.addItem(p, 'info', 'Level', `${(b.level*100).toFixed(0)}%`, 'Battery can be used as a short-lived identifier.');
-        this.updateGrade();
-      });
-    } else {
-      this.addItem(p, 'info', 'Battery', 'Unavailable', 'Battery API not exposed in this browser.');
-      this.updateGrade();
-    }
+  async init(){
+    initTheme();
+    this.bindOnce();
+    await this.render();
   }
 };
 
@@ -934,8 +1039,10 @@ if ('serviceWorker' in navigator) {
   });
   navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
 }
+
 function showUpdateToast(worker) {
-  const t = document.getElementById('update-toast'); t.classList.add('visible');
+  const t = document.getElementById('update-toast');
+  t.classList.add('visible');
   document.getElementById('btn-update').onclick = () => worker.postMessage({ type: 'SKIP_WAITING' });
 }
 </script>

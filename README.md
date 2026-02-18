@@ -1,101 +1,106 @@
 # 🔍 Privacy Check
 
-**Audit your digital footprint. Adjust settings. Rescan to verify your privacy.**
+Audit your digital footprint. Adjust settings. Rescan to verify your privacy.
 
-No hacks. No tricks. Just standard browser APIs doing what they were designed to do. The results might surprise you.
-
----
-
-## What Is This?
-
-Privacy Check is a free, open-source tool that shows you — in real time — what websites can silently learn about you using standard browser APIs. It runs entirely on your device. Nothing is sent anywhere. **Zero tracking. Zero irony.**
-
-It was built as an educational tool for **seniors, teens, and anyone who wants to understand what they're giving away** every time they open a browser.
+Privacy Check is a free, open-source tool that shows you — in real time — what modern websites can silently learn about you using standard browser APIs. It runs on your device and does not ship analytics or trackers.
 
 ---
 
-## 🧠 How to Read the Results
+## What it shows
 
-Privacy Check splits your results into two useful categories:
+Privacy Check highlights two kinds of information:
 
-### 🛡️ Actionable Security (Your Grade)
-Things you can fix. Your A–F grade focuses on practical risks like:
-- WebRTC leaks (local IP exposure)
-- Tracker blocking / ad blocking
-- Global Privacy Control (GPC)
-- Browser permission settings (camera, mic, motion, notifications, etc.)
+- **Actionable Security** (things you can improve)
+  - Ad blocking signals
+  - Global Privacy Control
+  - Permission states (camera, mic, notifications, etc.)
+  - Network/WebRTC exposure
+  - Manual “sensitive access” tests (only when you tap)
 
-### 👣 Digital Footprint (Your Uniqueness)
-Things that identify you but are harder to change (and shouldn’t “fail” you), like:
-- Hardware traits (screen, CPU cores, RAM)
-- Fingerprinting signals (canvas rendering, audio context)
-- Identity traits (user agent, timezone, fonts)
-
----
-
-## ✨ Features
-
-- **🔄 Rescan Button** — Toggle your VPN or change a setting, then rescan to see changes instantly.
-- **🎓 Smart Action Plan** — Personalized guidance based on what the tool detects.
-- **📱 PWA (Installable App)** — Install on iOS/Android. Works offline. Feels native.
-- **👆 Interactive Demos** — Visualizes touch + mouse tracking behavior in real time.
-- **♿ Accessible** — WCAG-minded: keyboard friendly, screen reader friendly, never relies on color alone.
+- **Device Footprint** (things that make you unique)
+  - Hardware signals (screen, CPU, RAM)
+  - Fingerprinting demos (canvas)
+  - Behavior demo (mouse/touch trails)
+  - Media and battery signals (varies by browser)
 
 ---
 
-## 🛠️ Tech Stack
+## Quick start
 
-- Single HTML file (no build step)
-- [Speyer UI (SUI)](https://github.com/adrianspeyer/speyer-ui) via CDN
-- Service Worker for offline caching + update prompts
-- No frameworks. No analytics. No dependencies.
+### Option A — Local (open the file)
+1. Download the repo
+2. Open `index.html` in a browser
+
+Most features work locally.
+The VPN / public IP test may be limited locally because it uses a Netlify endpoint when deployed.
+
+### Option B — Deploy on Netlify (recommended)
+1. Push the repo to GitHub
+2. In Netlify, create a new site from the repo
+3. Deploy
+
+That’s it. This repo includes a `netlify.toml` and a Netlify Function so the VPN test works out of the box.
 
 ---
 
-## 🚀 Getting Started
+## File structure
 
-### Option 1: Just Open It
-Download `index.html` and open it in your browser. Everything runs locally.
-
-### Option 2: Deploy as a PWA
-Drop these files onto any static host served over HTTPS (Netlify, Vercel, GitHub Pages, Cloudflare Pages):
-
-```text
+~~~text
 privacy-check/
-├── index.html       # The application
-├── manifest.json    # PWA install config
-├── sw.js            # Offline caching + update flow
-├── icon-192.png     # App icon
-└── icon-512.png     # App icon
-```
+├── index.html
+├── sw.js
+├── manifest.json
+├── icon-192.png
+├── icon-512.png
+├── netlify.toml
+├── netlify/
+│   └── functions/
+│       └── ip.js
+└── README.md
+~~~
 
 ---
 
-## 🌐 Deploy Notes (Netlify)
+## VPN test (simple and fast)
 
-This repo includes a `netlify.toml` that helps ensure users get the latest logic quickly (especially `index.html` and `sw.js`).
+There is no built-in browser API that reveals your public IP address directly.
+To make VPN testing easy, the app includes a button-based test that captures your public IP when you request it.
+
+How to test:
+1. Open **Network Exposure**
+2. Press **Capture / Compare IP** once (VPN off)
+3. Turn VPN on
+4. Press **Capture / Compare IP** again
+
+If the IP changes, the app labels it as a likely VPN / route change.
+(That can also happen if you switch networks — so it’s “likely”, not a guarantee.)
+
+Netlify users:
+- The public IP is fetched from your own deploy using `/.netlify/functions/ip`.
+
+Non-Netlify hosting:
+- The app may fall back to a public IP endpoint only when you click the VPN test button.
+- You can disable the fallback by setting `ALLOW_IPIFY_FALLBACK = false` in `index.html`.
 
 ---
 
-## Who Is This For?
+## Updating versions (maintainers)
 
-- **Seniors** who want to understand what “tracking” actually looks like  
-- **Teens** who grew up online but never looked under the hood  
-- **Teachers** who want a safe, visual demo for digital literacy classes  
-- **Anyone** who wants to verify whether their browser/VPN setup is actually protecting them  
+When you publish a new version:
+- Update the version in **two places**
+  - `index.html` → `APP_VERSION`
+  - `sw.js` → `CACHE_NAME`
 
----
+Example:
+- `APP_VERSION = 'v3.9'`
+- `CACHE_NAME = 'privacy-check-v3.9'`
 
-## Contributing
-
-Found a browser API that leaks data? Have a clearer way to explain a fingerprinting technique? Pull requests are welcome.
+Users will see an “Update Available” toast when a new service worker is installed.
 
 ---
 
 ## License
 
 MIT — use it, fork it, teach with it.
-
----
 
 Made in Canada with love 🇨🇦

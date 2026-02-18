@@ -1,9 +1,17 @@
 [build]
   publish = "."
 
-# 1) Logic & shell: always revalidate
+[functions]
+  directory = "netlify/functions"
+
+# 1) Logic files: never cache
 [[headers]]
   for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/manifest.json"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
@@ -13,11 +21,11 @@
     Cache-Control = "no-cache, no-store, must-revalidate"
 
 [[headers]]
-  for = "/manifest.json"
+  for = "/.netlify/functions/*"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
-# 2) Asset files: cache long-term
+# 2) Asset files: cache forever
 [[headers]]
   for = "/*.png"
   [headers.values]
