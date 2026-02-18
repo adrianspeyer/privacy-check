@@ -1,12 +1,19 @@
 [build]
   publish = "."
 
-[[redirects]]
-  from = "/README.md"
-  to = "/"
-  status = 301
+# 1. Logic Files: Never Cache (Always check for updates)
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
 
-[[redirects]]
-  from = "/README"
-  to = "/"
-  status = 301
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# 2. Asset Files: Cache Forever (Instant load)
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
