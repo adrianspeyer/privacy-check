@@ -2,99 +2,158 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#3B82F6">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Privacy Check">
-<meta name="description" content="Audit your digital footprint. See what your phone reveals.">
+<meta name="description" content="Audit your digital footprint. See what your device reveals.">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="icon" href="data:,"> 
-
+<link rel="icon" href="data:,">
 <title>Privacy Check</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@2.0.7/dist/sui-tokens.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@2.0.7/dist/sui-components.min.css">
 <script src="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@2.0.7/dist/sui.min.js" defer></script>
 
 <style>
 /* ── PWA Physics ── */
-body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; background: var(--sui-bg-primary); -webkit-user-select: none; user-select: none; touch-action: pan-y; }
+html, body { height: 100%; background: var(--sui-bg-primary); }
+body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; -webkit-user-select: none; user-select: none; touch-action: pan-y; }
 .app-scroller { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: env(safe-area-inset-bottom); overscroll-behavior-y: none; }
 .app-wrap { max-width: 640px; margin: 0 auto; padding: 0 var(--sui-space-3) 160px; }
 
+/* allow copy for educational content */
+.d-val, .d-why, .edu-box, .sui-footer { -webkit-user-select: text; user-select: text; }
+
 /* ── Sticky Action Bar ── */
-.action-bar { position: sticky; top: 0; z-index: 999; display: flex; justify-content: space-between; align-items: center; padding: 12px var(--sui-space-3); margin: 0 -16px; padding-left: calc(var(--sui-space-3) + env(safe-area-inset-left)); padding-right: calc(var(--sui-space-3) + env(safe-area-inset-right)); padding-top: calc(12px + env(safe-area-inset-top)); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--sui-border); }
+.action-bar{
+  position: sticky; top: 0; z-index: 999;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px var(--sui-space-3); margin: 0 -16px;
+  padding-left: calc(var(--sui-space-3) + env(safe-area-inset-left));
+  padding-right: calc(var(--sui-space-3) + env(safe-area-inset-right));
+  padding-top: calc(12px + env(safe-area-inset-top));
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--sui-border);
+}
 [data-theme="dark"] .action-bar { background: rgba(11, 15, 26, 0.95); }
-.btn-rescan { background: var(--sui-blue-primary); color: white; border: none; border-radius: 24px; padding: 8px 18px; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: var(--sui-shadow-sm); cursor: pointer; }
-.btn-rescan:active { transform: scale(0.96); }
-.btn-rescan svg { width: 18px; height: 18px; }
+.btn-rescan{
+  background: var(--sui-blue-primary); color: white; border: none; border-radius: 24px;
+  padding: 8px 18px; font-size: 15px; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: var(--sui-shadow-sm); cursor: pointer;
+}
+.btn-rescan:active{ transform: scale(0.96); }
+.btn-rescan svg{ width:18px; height:18px; }
 
 /* ── UI Components ── */
-.hero { text-align: center; padding: var(--sui-space-5) var(--sui-space-3) 24px; }
-.hero-icon { width: 64px; height: 64px; margin: 0 auto 16px; border-radius: var(--sui-radius-lg); background: var(--sui-blue-soft); border: 1px solid var(--sui-border); display: flex; align-items: center; justify-content: center; font-size: 30px; }
-
-/* Report Card */
-.rc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
-.rc-col { text-align: center; padding: 16px; background: var(--sui-bg-elevated); border-radius: var(--sui-radius-lg); border: 1px solid var(--sui-border); }
-.rc-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--sui-text-muted); letter-spacing: 0.05em; margin-bottom: 8px; }
-.rc-val-big { font-family: var(--sui-font-mono); font-size: 42px; font-weight: 700; line-height: 1; }
-.rc-sub { font-size: 12px; color: var(--sui-text-secondary); margin-top: 6px; font-weight: 500; }
-
-/* Headers */
-.sec-header { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sui-text-muted); margin: 32px 0 12px; padding-left: 4px; display: flex; align-items: center; gap: 8px; }
-.sec-line { height: 1px; background: var(--sui-border); flex: 1; }
-
-/* Action Plan Box */
-.action-plan { background: var(--sui-bg-card); border: 1px solid var(--sui-border); border-radius: var(--sui-radius-lg); padding: 16px; margin-top: 24px; box-shadow: var(--sui-shadow-sm); }
-.ap-title { font-weight: 700; font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-
-/* Data Items */
-.d-item { background: var(--sui-bg-elevated); border: 1px solid var(--sui-border); border-radius: var(--sui-radius-md); margin-bottom: 16px; overflow: hidden; }
-.d-row { display: flex; align-items: flex-start; padding: 16px; gap: 16px; }
-.d-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
-.d-dot-h { background: var(--sui-error); }
-.d-dot-m { background: var(--sui-warning); }
-.d-dot-s { background: var(--sui-success); }
-.d-dot-l { background: var(--sui-info); opacity: 0.5; } 
-
-.d-key { font-size: 14px; color: var(--sui-text-secondary); flex-shrink: 0; min-width: 110px; font-weight: 600; }
-.d-val { font-family: var(--sui-font-mono); font-size: 14px; color: var(--sui-blue-active); text-align: right; flex: 1; overflow-wrap: anywhere; line-height: 1.6; }
-.d-why { padding: 12px 16px; background: rgba(0,0,0,0.03); font-size: 13px; color: var(--sui-text-primary); border-top: 1px solid var(--sui-border); line-height: 1.5; }
-.d-why-label { font-weight: 700; font-size: 11px; text-transform: uppercase; color: var(--sui-text-muted); display: block; margin-bottom: 4px; letter-spacing: 0.05em; }
-
-/* Mobile Stack */
-@media (max-width: 480px) {
-  .d-row { flex-direction: column; gap: 6px; }
-  .d-key { min-width: auto; margin-bottom: 2px; color: var(--sui-text-muted); font-size: 12px; text-transform: uppercase; letter-spacing:0.05em;}
-  .d-val { text-align: left; width: 100%; font-size: 15px; }
-  .d-dot { display: none; } 
-  .d-item { border-left: 4px solid transparent; }
-  .d-item.risk-h { border-left-color: var(--sui-error); }
-  .d-item.risk-m { border-left-color: var(--sui-warning); }
-  .d-item.risk-s { border-left-color: var(--sui-success); }
-  .d-item.risk-l { border-left-color: var(--sui-border); }
+.hero{ text-align:center; padding: var(--sui-space-5) var(--sui-space-3) 24px; }
+.hero-icon{
+  width:64px; height:64px; margin:0 auto 16px;
+  border-radius: var(--sui-radius-lg);
+  background: var(--sui-blue-soft);
+  border:1px solid var(--sui-border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:30px;
 }
 
-.edu-box { background: var(--sui-blue-soft); border: 1px solid var(--sui-blue-focus); padding: 16px; border-radius: var(--sui-radius-md); margin-bottom: 16px; font-size: 14px; color: var(--sui-text-primary); line-height: 1.5; display: flex; gap: 12px; }
-.edu-icon { font-size: 20px; flex-shrink: 0; margin-top: 0; }
-.perm-btn { width: 100%; margin-bottom: 12px; justify-content: flex-start; border-style: dashed; padding: 14px; height: auto; }
-.perm-btn.granted { border-style: solid; border-color: var(--sui-success); background: var(--sui-success-soft); color: var(--sui-success-strong); }
-.perm-btn.protected { border-style: solid; border-color: var(--sui-success); background: var(--sui-bg-elevated); color: var(--sui-text-secondary); pointer-events: none; }
+/* Report Card */
+.rc-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:16px; }
+.rc-col{ text-align:center; padding:16px; background:var(--sui-bg-elevated);
+  border-radius: var(--sui-radius-lg); border:1px solid var(--sui-border); }
+.rc-label{ font-size:11px; font-weight:700; text-transform:uppercase; color:var(--sui-text-muted);
+  letter-spacing:0.05em; margin-bottom:8px; }
+.rc-val-big{ font-family: var(--sui-font-mono); font-size:42px; font-weight:700; line-height:1; }
+.rc-sub{ font-size:12px; color:var(--sui-text-secondary); margin-top:6px; font-weight:500; }
+.rc-meta{ margin-top:12px; font-size:12px; color: var(--sui-text-muted); }
+
+/* Headers */
+.sec-header{
+  font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em;
+  color:var(--sui-text-muted); margin:32px 0 12px; padding-left:4px;
+  display:flex; align-items:center; gap:8px;
+}
+.sec-line{ height:1px; background:var(--sui-border); flex:1; }
+
+/* Data Items */
+.d-item{ background:var(--sui-bg-elevated); border:1px solid var(--sui-border);
+  border-radius: var(--sui-radius-md); margin-bottom:16px; overflow:hidden; }
+.d-row{ display:flex; align-items:flex-start; padding:16px; gap:16px; }
+.d-dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:6px; }
+.d-dot-h{ background: var(--sui-error); }
+.d-dot-m{ background: var(--sui-warning); }
+.d-dot-s{ background: var(--sui-success); }
+.d-dot-l{ background: var(--sui-info); opacity:0.45; }
+
+.d-key{ font-size:14px; color:var(--sui-text-secondary); flex-shrink:0; min-width:120px; font-weight:600; }
+.d-val{ font-family: var(--sui-font-mono); font-size:14px; color: var(--sui-blue-active);
+  text-align:right; flex:1; overflow-wrap:anywhere; line-height:1.6; }
+.d-why{ padding:12px 16px; background: rgba(0,0,0,0.03); font-size:13px;
+  color:var(--sui-text-primary); border-top:1px solid var(--sui-border); line-height:1.5; }
+[data-theme="dark"] .d-why{ background: rgba(255,255,255,0.05); }
+.d-why-label{ font-weight:700; font-size:11px; text-transform:uppercase; color:var(--sui-text-muted);
+  display:block; margin-bottom:4px; letter-spacing:0.05em; }
+
+/* Mobile Stack */
+@media (max-width: 480px){
+  .d-row{ flex-direction:column; gap:6px; }
+  .d-key{ min-width:auto; margin-bottom:2px; color:var(--sui-text-muted); font-size:12px;
+    text-transform:uppercase; letter-spacing:0.05em; }
+  .d-val{ text-align:left; width:100%; font-size:15px; }
+  .d-dot{ display:none; }
+  .d-item{ border-left:4px solid transparent; }
+  .d-item.risk-high{ border-left-color: var(--sui-error); }
+  .d-item.risk-med{ border-left-color: var(--sui-warning); }
+  .d-item.risk-safe{ border-left-color: var(--sui-success); }
+  .d-item.risk-low{ border-left-color: var(--sui-border); }
+}
+
+.edu-box{
+  background: var(--sui-blue-soft);
+  border: 1px solid var(--sui-blue-focus);
+  padding:16px; border-radius: var(--sui-radius-md);
+  margin-bottom:16px; font-size:14px; color:var(--sui-text-primary);
+  line-height:1.5; display:flex; gap:12px;
+}
+.edu-icon{ font-size:20px; flex-shrink:0; }
+
+.perm-btn{ width:100%; margin-bottom:12px; justify-content:flex-start; border-style:dashed; padding:14px; height:auto; }
 
 /* Toast */
-.sui-toast-container { z-index: 2000 !important; top: 80px !important; }
-.update-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); z-index: 2000; transition: transform 0.3s ease-out; width: 90%; max-width: 400px; }
-.update-toast.visible { transform: translateX(-50%) translateY(0); }
+.sui-toast-container{ z-index:2000 !important; top:80px !important; }
+.update-toast{
+  position:fixed; bottom:20px; left:50%;
+  transform: translateX(-50%) translateY(100px);
+  z-index:2000; transition: transform 0.3s ease-out;
+  width:90%; max-width:400px;
+}
+.update-toast.visible{ transform: translateX(-50%) translateY(0); }
+
+/* Behavior demo */
+.touch-demo{
+  position:relative; width:100%; height:220px;
+  background: var(--sui-bg-elevated);
+  border: 1px dashed var(--sui-border);
+  border-radius: var(--sui-radius-md);
+  overflow:hidden;
+}
+.touch-trail{
+  position:absolute; width:14px; height:14px; border-radius:999px;
+  transform: translate(-50%, -50%);
+  opacity:0.85;
+}
 </style>
 </head>
-<body>
 
-<div id="update-toast" class="sui-toast sui-toast-info update-toast">
+<body>
+<div id="update-toast" class="sui-toast sui-toast-info update-toast" role="status" aria-live="polite">
   <div class="sui-toast-icon">✨</div>
   <div class="sui-toast-content">
     <div class="sui-toast-title">Update Available</div>
@@ -103,16 +162,19 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
   <button class="sui-btn sui-btn-sm sui-btn-primary" id="btn-update">Update</button>
 </div>
 
-<div class="app-scroller">
+<div class="app-scroller" id="scroller">
   <div class="action-bar">
-    <button class="btn-rescan" id="global-rescan">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    <button class="btn-rescan" id="global-rescan" aria-label="Rescan privacy tests">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
       Rescan
     </button>
+
     <label class="sui-toggle-label" style="margin:0">
       <span style="font-size:12px;color:var(--sui-text-muted);">☀️/🌙</span>
       <span class="sui-toggle">
-        <input type="checkbox" id="theme-toggle">
+        <input type="checkbox" id="theme-toggle" aria-label="Toggle dark mode">
         <span class="sui-toggle-track"></span>
       </span>
     </label>
@@ -127,11 +189,12 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 
     <div class="sui-card sui-mb-4" id="report">
       <div class="sui-text-center"><span class="sui-badge sui-badge-neutral sui-badge-sm">LIVE STATUS</span></div>
+
       <div class="rc-grid">
         <div class="rc-col">
           <div class="rc-label">Security Grade</div>
           <div class="rc-val-big" id="o-grade" style="color:var(--sui-text-muted)">-</div>
-          <div class="rc-sub" id="o-label">Checking...</div>
+          <div class="rc-sub" id="o-label">Checking…</div>
         </div>
         <div class="rc-col">
           <div class="rc-label">Footprint Bits</div>
@@ -139,11 +202,17 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
           <div class="rc-sub">Uniqueness</div>
         </div>
       </div>
-      
+
+      <div class="rc-meta" id="last-scan">Last scan: —</div>
+
       <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--sui-border)">
         <div class="sui-progress sui-progress-lg" id="score-container">
           <div class="sui-progress-bar" id="score-bar" style="width:0%"></div>
         </div>
+      </div>
+
+      <div style="margin-top:12px;font-size:12px;color:var(--sui-text-muted);line-height:1.4">
+        Grade reflects <b>actionable security</b> only (things you can change). Your footprint shows uniqueness.
       </div>
     </div>
 
@@ -156,8 +225,10 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
     <div id="sec-footprint"></div>
 
     <div class="sui-footer">
-      <p>Data stays on device. Built with Speyer UI.</p>
-      <div class="sui-mt-2"><span class="sui-badge sui-badge-neutral sui-badge-sm sui-badge-outline" id="app-version">v3.5</span></div>
+      <p>Scans run locally. <span id="net-note" style="opacity:.85"></span> Built with Speyer UI.</p>
+      <div class="sui-mt-2">
+        <span class="sui-badge sui-badge-neutral sui-badge-sm sui-badge-outline" id="app-version">v3.6</span>
+      </div>
     </div>
   </div>
 </div>
@@ -165,50 +236,99 @@ body, html { position: fixed; width: 100%; height: 100%; overflow: hidden; backg
 <canvas id="fp-canvas" width="200" height="50" style="display:none"></canvas>
 
 <script>
-/* Speyer UI Privacy Check - v3.5 (Persistent State) */
+/**
+ * Privacy Check — single-file drop-in
+ * v3.6
+ *
+ * NOTE ABOUT VPN CHECK:
+ * - To detect “VPN on/off” meaningfully, we optionally fetch your PUBLIC IP from a tiny endpoint (ipify).
+ * - This is the only non-local “detection” call (UI assets still load via CDN).
+ * - Set ENABLE_PUBLIC_IP_CHECK = false to disable (then VPN toggles may not affect score).
+ */
 
-const APP_VERSION = 'v3.5';
+const APP_VERSION = 'v3.6';
 document.getElementById('app-version').innerText = APP_VERSION;
 
-// RiskMap tracks actionable issues (High score = Bad)
-const RiskMap = new Map();
-const FootprintMap = new Map();
+const ENABLE_PUBLIC_IP_CHECK = true;
+const PUBLIC_IP_ENDPOINTS = [
+  'https://api64.ipify.org?format=json',
+  'https://api.ipify.org?format=json'
+];
 
-// Test Result State (To remember "Success" after rescan)
+const RiskMap = new Map();      // actionable risks (weighted)
+const FootprintMap = new Map(); // uniqueness contributors
+
 const TestResults = {
-  contacts: null, // null = unchecked, 'blocked' = good, 'exposed' = bad
-  files: null
+  contacts: null, // 'blocked' | 'exposed'
+  files: null,
+  media: null,
+  gyro: null
 };
 
 const State = {
   isBrave: false,
   isFirefox: false,
   hasAdBlock: false,
-  webRTCSafe: false
+  webRTCSafe: null,     // true | false | null
+  publicIP: null,
+  vpnLikely: null       // true | false | null
 };
+
+const Storage = {
+  get(k, fallback=null) {
+    try { return JSON.parse(localStorage.getItem(k)) ?? fallback; } catch { return fallback; }
+  },
+  set(k, v) {
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch {}
+  }
+};
+
+const RiskWeight = { high: 2, med: 1, safe: 0, low: 0 };
+const SevDot = { high: 'd-dot-h', med: 'd-dot-m', safe: 'd-dot-s', low: 'd-dot-l' };
 
 const App = {
   layout: {
     guide: ['tips'],
-    actionable: ['prot', 'net', 'api', 'sen', 'priv'],
-    footprint: ['id', 'hw', 'fp', 'beh', 'font', 'med', 'bat']
+    actionable: ['prot', 'net', 'api', 'id', 'sen', 'priv'],
+    footprint: ['hw', 'fp', 'beh', 'font', 'med', 'bat']
   },
-  
-  mkSec(id, icon, title, sub, eduText) {
+
+  resetUI() {
+    ['sec-guide', 'sec-actionable', 'sec-footprint'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = '';
+    });
+    RiskMap.clear();
+    FootprintMap.clear();
+  },
+
+  mkSec(id, icon, title, sub, eduText, defaultOpen=false) {
     let containerId = 'sec-footprint';
     if (App.layout.actionable.includes(id)) containerId = 'sec-actionable';
     if (App.layout.guide.includes(id)) containerId = 'sec-guide';
-    
+
     const container = document.getElementById(containerId);
     if (!container) return document.createElement('div');
 
     const wrap = document.createElement('div');
     wrap.className = 'sui-accordion sui-mb-4';
-    
+
     const trigger = document.createElement('button');
     trigger.className = 'sui-accordion-trigger';
-    trigger.setAttribute('aria-expanded', 'false');
     trigger.style.padding = '20px';
+    trigger.id = `trigger-${id}`;
+    trigger.setAttribute('aria-expanded', defaultOpen ? 'true' : 'false');
+
+    const panel = document.createElement('div');
+    panel.className = 'sui-accordion-panel';
+    panel.hidden = !defaultOpen;
+    panel.id = `panel-${id}`;
+    panel.style.paddingTop = '12px';
+    panel.setAttribute('role', 'region');
+    panel.setAttribute('aria-labelledby', trigger.id);
+
+    trigger.setAttribute('aria-controls', panel.id);
+
     trigger.innerHTML = `
       <span style="display:flex;align-items:center;gap:var(--sui-space-3);flex:1">
         <span style="font-size:24px">${icon}</span>
@@ -217,14 +337,10 @@ const App = {
           <span style="display:block;font-size:13px;color:var(--sui-text-muted);font-weight:400;margin-top:4px">${sub}</span>
         </span>
       </span>
-      <svg class="sui-accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      <svg class="sui-accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
     `;
-    
-    const panel = document.createElement('div');
-    panel.className = 'sui-accordion-panel';
-    panel.hidden = true;
-    panel.id = `panel-${id}`;
-    panel.style.paddingTop = '12px';
 
     if (eduText) {
       const edu = document.createElement('div');
@@ -235,108 +351,101 @@ const App = {
 
     trigger.onclick = () => {
       const exp = trigger.getAttribute('aria-expanded') === 'true';
-      trigger.setAttribute('aria-expanded', !exp);
+      trigger.setAttribute('aria-expanded', (!exp).toString());
       panel.hidden = exp;
     };
-    
+
     wrap.appendChild(trigger);
     wrap.appendChild(panel);
     container.appendChild(wrap);
     return panel;
   },
 
-  // Helper: Wipe risks for a section before re-scanning
-  clearRisks(keys) {
-    keys.forEach(k => RiskMap.delete(k));
-  },
-
-  addItem(panel, category, key, val, why, whyTech, isAlert) {
+  addItem(panel, category, key, val, why, whyTech, severity='low') {
     if (!panel) return;
 
-    let dotClass = 'd-dot-l';
-    let riskValue = 0;
+    const dotClass = SevDot[severity] || 'd-dot-l';
 
-    if(category === 'risk') {
-       if(isAlert) { 
-         dotClass = 'd-dot-h'; 
-         riskValue = 1;
-       }
-       else if(val && (val.includes('Exposed') || val.includes('Yes') || val === 'Missing' || val.includes('High Risk'))) { 
-         dotClass = 'd-dot-m'; 
-         riskValue = 0.5;
-       } 
-       else { dotClass = 'd-dot-s'; }
-       
-       RiskMap.set(key, riskValue);
+    if (category === 'risk') {
+      RiskMap.set(key, RiskWeight[severity] ?? 0);
     } else {
-       FootprintMap.set(key, 1);
-       dotClass = 'd-dot-l'; 
+      FootprintMap.set(key, 1);
     }
 
     const el = document.createElement('div');
-    el.className = `d-item risk-${dotClass.replace('d-dot-', '')}`;
-    
-    const whyBlock = (why || whyTech) 
-      ? `<div class="d-why"><span class="d-why-label">${category === 'risk' ? '⚠️ Analysis' : '👣 Fingerprint Data'}</span><div>${why ? `<b>${why}</b> ` : ''}${whyTech || ''}</div></div>` 
+    el.className = `d-item risk-${severity}`;
+
+    const whyBlock = (why || whyTech)
+      ? `<div class="d-why">
+           <span class="d-why-label">${category === 'risk' ? '⚠️ Analysis' : '👣 Fingerprint Data'}</span>
+           <div>${why ? `<b>${why}</b> ` : ''}${whyTech || ''}</div>
+         </div>`
       : '';
 
     el.innerHTML = `
       <div class="d-row">
         <div class="d-dot ${dotClass}"></div>
         <span class="d-key">${key}</span>
-        <span class="d-val ${isAlert ? 'd-val-err' : ''}">${val || '<span>unavailable</span>'}</span>
+        <span class="d-val">${val ?? '<span>unavailable</span>'}</span>
       </div>
       ${whyBlock}
     `;
     panel.appendChild(el);
   },
 
-  // Button that remembers state ("Persistent Success")
   addBtn(panel, id, label, icon, onClick) {
     if (!panel) return;
-    
-    const resultState = TestResults[id];
-    
-    // If already passed, show static success row instead of button
-    if(resultState === 'blocked') {
-        this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'You successfully denied access.', '', false);
-        return;
+
+    const state = TestResults[id];
+    if (state === 'blocked') {
+      this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'You denied access or the browser blocked it.', '', 'safe');
+      return;
     }
-    
-    // If already failed, show failure
-    if(resultState === 'exposed') {
-        this.addItem(panel, 'risk', label, 'Exposed', 'Access previously granted.', '', true);
-        const reset = document.createElement('button');
-        reset.className = 'sui-btn sui-btn-xs sui-btn-ghost';
-        reset.innerText = 'Retest';
-        reset.onclick = () => { TestResults[id] = null; App.init(); } // Simple reload to reset state
-        panel.appendChild(reset);
-        return;
+    if (state === 'exposed') {
+      this.addItem(panel, 'risk', label, 'Exposed', 'You granted access.', '', 'high');
+      return;
     }
 
     const btn = document.createElement('button');
     btn.className = 'sui-btn sui-btn-ghost perm-btn';
     btn.innerHTML = `<span style="margin-right:8px">${icon}</span> ${label}`;
+
     btn.onclick = async () => {
+      btn.classList.add('sui-btn-loading');
+
+      let result;
       try {
-        btn.classList.add('sui-btn-loading'); 
-        await onClick(btn, panel);
-        // If we get here, it succeeded (Exposed)
-        TestResults[id] = 'exposed';
-        btn.classList.remove('sui-btn-ghost', 'sui-btn-loading');
-        btn.classList.add('granted');
-        this.updateGrade(); 
+        result = await onClick(btn, panel);
       } catch (e) {
-        // If we get here, it failed (Protected)
-        btn.classList.remove('sui-btn-loading');
-        TestResults[id] = 'blocked';
-        
-        // Remove button and replace with Success Item
-        btn.remove();
-        this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'Access Denied.', '', false);
-        this.updateGrade();
+        result = { status: 'blocked', reason: e?.name || 'error' };
       }
+
+      btn.classList.remove('sui-btn-loading');
+
+      if (result?.status === 'cancelled') {
+        SUI?.toast?.info?.('Cancelled', 'No permission change was made.');
+        return;
+      }
+
+      if (result?.status === 'unsupported') {
+        btn.remove();
+        this.addItem(panel, 'risk', label, 'Unavailable', 'This API is not supported in your browser.', '', 'low');
+        this.updateGrade();
+        return;
+      }
+
+      TestResults[id] = result?.status || 'blocked';
+      btn.remove();
+
+      if (TestResults[id] === 'blocked') {
+        this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'Access denied or not granted.', '', 'safe');
+      } else {
+        this.addItem(panel, 'risk', label, 'Exposed', 'You granted access.', '', 'high');
+      }
+
+      this.updateGrade();
     };
+
     panel.appendChild(btn);
   },
 
@@ -346,69 +455,68 @@ const App = {
     const lEl = document.getElementById('o-label');
     const uEl = document.getElementById('s-uniq');
 
-    if (!gEl || !bEl) return;
-
     let totalRisk = 0;
     RiskMap.forEach(v => totalRisk += v);
-    const risks = Math.ceil(totalRisk);
 
-    let grade = 'A';
-    let pct = 100;
+    // A more stable grade curve
+    let grade = 'A', pct = 100;
+    if (totalRisk >= 6) { grade = 'F'; pct = 25; }
+    else if (totalRisk >= 4) { grade = 'D'; pct = 50; }
+    else if (totalRisk >= 2) { grade = 'C'; pct = 70; }
+    else if (totalRisk >= 1) { grade = 'B'; pct = 90; }
 
-    if (risks > 4) { grade = 'F'; pct = 25; }
-    else if (risks > 2) { grade = 'D'; pct = 50; }
-    else if (risks > 0.5) { grade = 'C'; pct = 70; }
-    else if (risks > 0) { grade = 'B'; pct = 90; }
+    if (uEl) uEl.innerText = Math.max(1, Math.round(FootprintMap.size * 1.5));
 
-    if (uEl) uEl.innerText = (FootprintMap.size * 1.5).toFixed(0); 
+    const color = (grade === 'A') ? 'var(--sui-success)'
+               : (grade === 'F') ? 'var(--sui-error)'
+               : 'var(--sui-warning)';
 
-    const color = grade === 'A' ? 'var(--sui-success)' : grade === 'F' ? 'var(--sui-error)' : 'var(--sui-warning)';
-    gEl.innerText = grade;
-    gEl.style.color = color;
-    bEl.style.width = pct + '%';
-    bEl.style.backgroundColor = color;
-    
+    if (gEl) { gEl.innerText = grade; gEl.style.color = color; }
+    if (bEl) { bEl.style.width = pct + '%'; bEl.style.backgroundColor = color; }
+
     if (lEl) {
-      lEl.innerText = grade === 'A' ? 'Excellent' : grade === 'F' ? 'Critical Risks' : 'Improvements Needed';
+      lEl.innerText =
+        grade === 'A' ? 'Excellent' :
+        grade === 'B' ? 'Good' :
+        grade === 'C' ? 'Improvements Needed' :
+        grade === 'D' ? 'High Risk' : 'Critical Risks';
     }
-    
+
     this.updateGuide();
   },
 
   updateGuide() {
     const panel = document.getElementById('panel-tips');
-    if(!panel) return;
-    
-    const tips = [];
-    
-    // Browser Advice
-    const ua = navigator.userAgent;
-    State.isBrave = navigator.brave !== undefined;
-    State.isFirefox = ua.toLowerCase().includes('firefox');
-    
-    if (State.isBrave || State.isFirefox) {
-      tips.push({ s: 'success', t: 'Browser: Safe', d: 'You are using a privacy-focused browser.' });
-    } else {
-      tips.push({ s: 'error', t: 'Browser: High Risk', d: 'Switch to <b>Brave</b> or <b>Firefox</b> to stop passive tracking.' });
-    }
-
-    if (State.hasAdBlock) {
-      tips.push({ s: 'success', t: 'AdBlock: Active', d: 'You are blocking invisible tracking scripts.' });
-    } else {
-      tips.push({ s: 'error', t: 'AdBlock: Missing', d: '<b>Critical Action:</b> Install <b>uBlock Origin</b> immediately.' });
-    }
-
-    if (State.webRTCSafe) {
-      tips.push({ s: 'success', t: 'WebRTC: Safe', d: 'No local IP leak detected.' });
-    } else {
-      tips.push({ s: 'warning', t: 'WebRTC: Leaking', d: 'Your real IP is visible. Disable WebRTC or use a VPN.' });
-    }
+    if (!panel) return;
 
     panel.innerHTML = '';
+
     const edu = document.createElement('div');
     edu.className = 'edu-box';
     edu.innerHTML = `<div class="edu-icon">ℹ️</div><div>We analyzed your settings. Here is your personalized to-do list.</div>`;
     panel.appendChild(edu);
+
+    const ua = navigator.userAgent.toLowerCase();
+    State.isBrave = (navigator.brave !== undefined);
+    State.isFirefox = ua.includes('firefox');
+
+    const tips = [];
+
+    if (State.isBrave || State.isFirefox) tips.push({ s:'success', t:'Browser: Safer', d:'You are using a more privacy-forward browser.' });
+    else tips.push({ s:'warning', t:'Browser: Standard', d:'Consider <b>Brave</b> or <b>Firefox</b> to reduce passive tracking.' });
+
+    if (State.hasAdBlock) tips.push({ s:'success', t:'Ad Blocking: Active', d:'You are blocking many invisible trackers.' });
+    else tips.push({ s:'error', t:'Ad Blocking: Missing', d:'Install <b>uBlock Origin</b> (desktop) or enable stronger tracker blocking.' });
+
+    if (State.webRTCSafe === true) tips.push({ s:'success', t:'WebRTC: Safer', d:'No local/private IP exposure detected via WebRTC.' });
+    else if (State.webRTCSafe === false) tips.push({ s:'warning', t:'WebRTC: Leaking', d:'A local/private IP was exposed via WebRTC candidates.' });
+    else tips.push({ s:'warning', t:'WebRTC: Unknown', d:'WebRTC candidate collection was blocked or inconclusive.' });
+
+    if (ENABLE_PUBLIC_IP_CHECK) {
+      if (State.vpnLikely === true) tips.push({ s:'success', t:'VPN: Likely Active', d:'Your public IP changed since the last scan (often indicates VPN/proxy).' });
+      else if (State.vpnLikely === false) tips.push({ s:'warning', t:'VPN: Not Detected', d:'Public IP did not change since last scan. If you toggled VPN, verify it’s actually on.' });
+      else tips.push({ s:'warning', t:'VPN: Unknown', d:'Public IP check was unavailable.' });
+    }
 
     tips.forEach(t => {
       const div = document.createElement('div');
@@ -418,184 +526,321 @@ const App = {
     });
   },
 
-  // --- SCANNERS ---
-
-  init() {
-    // 1. Create the Guide FIRST (Top Position)
-    this.mkSec('tips', '🎓', 'Smart Action Plan', 'Based on your results', 
-      'We analyzed your settings. Here is your personalized to-do list.');
-
-    this.mkSec('prot', '🛡️', 'Protection Check', 'AdBlock, Cookies, GPC', 'Your first line of defense.');
-    this.scanProtection(document.getElementById('panel-prot'));
-
-    // NEW: Auto-Scan Permissions API
-    this.mkSec('api', '🚦', 'Permissions API', 'Auto-detected settings', 'Settings you have already configured.');
-    this.scanPermissions(document.getElementById('panel-api'));
-
-    this.mkSec('net', '🌐', 'Network Exposure', 'IP, WebRTC, Connection', 'What sites see about your location.');
-    this.scanNetwork(document.getElementById('panel-net'));
-
-    this.mkSec('id', '📱', 'Identity', 'Browser, OS, Timezone', 'The software you run creates a fingerprint.');
-    this.scanIdentity(document.getElementById('panel-id'));
-
-    this.mkSec('hw', '🔧', 'Hardware Specs', 'Screen, CPU, RAM', 'Your physical device properties.');
-    this.scanHardware(document.getElementById('panel-hw'));
-
-    this.mkSec('fp', '👁', 'Invisible Fingerprints', 'Canvas, GPU, Audio', 'Advanced tracking techniques.');
-    this.scanFP(document.getElementById('panel-fp'));
-
-    this.mkSec('sen', '📡', 'Sensors & Motion', 'Gyroscope, Compass', 'Physical sensor data.');
-    this.scanSensors(document.getElementById('panel-sen'));
-
-    this.mkSec('priv', '🔐', 'Sensitive Access', 'Contacts, Files', 'Sensitive APIs. Manual check required.');
-    this.scanSensitive(document.getElementById('panel-priv'));
-
-    this.mkSec('beh', '👆', 'Behavior', 'Touch & Mouse', 'Biometric movement data.');
-    this.scanBehavior(document.getElementById('panel-beh'));
-
-    this.mkSec('font', '🔤', 'Font Inventory', 'Installed Fonts', 'Your unique list of installed fonts.');
-    this.scanFonts(document.getElementById('panel-font'));
-
-    this.mkSec('med', '📷', 'Media Devices', 'Camera, Mic', 'Hardware identifiers.');
-    this.scanMedia(document.getElementById('panel-med'));
-
-    this.mkSec('bat', '🔋', 'Battery Status', 'Level, Charging', 'Short-term tracking identifier.');
-    this.scanBattery(document.getElementById('panel-bat'));
-
-    window.addEventListener('online', () => { SUI.toast.info('Network Changed', 'Rescanning...'); this.scanNetwork(document.getElementById('panel-net')); });
-    
-    document.getElementById('global-rescan').onclick = () => { 
-      SUI.toast.success('Rescanning', 'Updating analysis...'); 
-      this.scanNetwork(document.getElementById('panel-net'));
-      this.scanProtection(document.getElementById('panel-prot'));
-      this.scanPermissions(document.getElementById('panel-api'));
-      this.scanIdentity(document.getElementById('panel-id'));
-    };
-    
-    document.getElementById('theme-toggle').addEventListener('change', (e) => {
-       document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
-    });
-    
-    this.updateGrade();
-    setTimeout(() => { if(RiskMap.size > 0) document.querySelector('#panel-tips').hidden = false; }, 1000);
+  setLastScan() {
+    const el = document.getElementById('last-scan');
+    if (!el) return;
+    const now = new Date();
+    el.innerText = `Last scan: ${now.toLocaleString()}`;
   },
 
-  // NEW: Permissions API Scanner
-  async scanPermissions(p) {
-    if (!p) return;
-    p.innerHTML = '';
-    this.clearRisks(['Geo Permission', 'Notif Permission', 'Camera Permission', 'Mic Permission']);
-
-    const check = async (name, label) => {
-      try {
-        const result = await navigator.permissions.query({name});
-        const state = result.state; // 'granted', 'denied', 'prompt'
-        let risk = 'risk';
-        let alert = false;
-        let val = state.toUpperCase();
-        
-        if (state === 'granted') { alert = true; val += ' (Exposed)'; }
-        if (state === 'denied') { val += ' (Protected)'; }
-        
-        this.addItem(p, risk, label, val, 'Browser Permission State.', '', alert);
-      } catch(e) {
-        // Not supported in this browser
-      }
-    };
-
-    await check('geolocation', 'Geo Permission');
-    await check('notifications', 'Notif Permission');
-    await check('camera', 'Camera Permission');
-    await check('microphone', 'Mic Permission');
-    this.updateGrade();
-  },
+  // ───────────────────────── SCANNERS ─────────────────────────
 
   async scanProtection(p) {
     if (!p) return;
     p.innerHTML = '';
-    
-    this.clearRisks(['GPC Signal', 'Ad Blocker', 'Cookies']);
 
-    const gpc = navigator.globalPrivacyControl;
-    this.addItem(p, 'risk', 'GPC Signal', gpc?'On':'Off', 'Global Privacy Control setting.', '', !gpc);
-    
-    this.addItem(p, 'risk', 'Cookies', navigator.cookieEnabled ? 'Enabled' : 'Blocked', 'Standard tracking.', '', false);
+    // GPC
+    const gpc = !!navigator.globalPrivacyControl;
+    this.addItem(
+      p, 'risk', 'GPC Signal',
+      gpc ? 'On' : 'Off',
+      'Global Privacy Control signals “Do Not Sell / Share”.',
+      gpc ? 'Good: some sites honor it.' : 'Off: you’re not signaling a universal opt-out.',
+      gpc ? 'safe' : 'med'
+    );
 
-    const ad = document.createElement('div'); ad.className='adsbox'; ad.style.position='absolute'; ad.style.left='-999px'; document.body.appendChild(ad);
-    setTimeout(() => {
-      const blocked = ad.offsetHeight === 0;
-      State.hasAdBlock = blocked;
-      if(blocked) this.addItem(p, 'risk', 'Ad Blocker', 'Active', 'Excellent. Blocking trackers.', '', false);
-      else this.addItem(p, 'risk', 'Ad Blocker', 'Missing', 'CRITICAL RISK.', 'Vulnerable to tracking.', true);
-      ad.remove();
+    // Do Not Track (legacy but educational)
+    const dnt = (navigator.doNotTrack === '1' || window.doNotTrack === '1');
+    this.addItem(
+      p, 'risk', 'Do Not Track',
+      dnt ? 'On' : 'Off',
+      'A legacy opt-out header.',
+      dnt ? 'Low impact, but harmless to enable.' : 'Off: not sending this header.',
+      dnt ? 'low' : 'low'
+    );
+
+    // Cookies enabled = tracking surface
+    const cookiesEnabled = !!navigator.cookieEnabled;
+    this.addItem(
+      p, 'risk', 'Cookies',
+      cookiesEnabled ? 'Enabled' : 'Blocked',
+      'Cookies are a major tracking mechanism.',
+      cookiesEnabled ? 'Enabled: increases tracking surface.' : 'Blocked: reduces cookie-based tracking.',
+      cookiesEnabled ? 'med' : 'safe'
+    );
+
+    // Adblock detection (FIXED: bait has size + computed style check)
+    const bait = document.createElement('div');
+    bait.className = 'adsbox ad-banner adunit adsbygoogle';
+    bait.style.position = 'absolute';
+    bait.style.left = '-9999px';
+    bait.style.top = '-9999px';
+    bait.style.width = '10px';
+    bait.style.height = '10px';
+    bait.style.pointerEvents = 'none';
+    document.body.appendChild(bait);
+
+    await new Promise(r => setTimeout(r, 120));
+
+    const cs = window.getComputedStyle(bait);
+    const blocked = (cs.display === 'none' || cs.visibility === 'hidden' || bait.offsetHeight === 0 || bait.offsetWidth === 0);
+
+    State.hasAdBlock = blocked;
+    this.addItem(
+      p, 'risk', 'Ad Blocker',
+      blocked ? 'Active' : 'Missing',
+      blocked ? 'Great: many tracking scripts are blocked.' : 'Trackers can run freely.',
+      blocked ? 'Lower risk of third-party tracking.' : 'Install uBlock Origin (desktop) or enable stronger browser protections.',
+      blocked ? 'safe' : 'high'
+    );
+
+    bait.remove();
+    this.updateGrade();
+  },
+
+  async scanPermissions(p) {
+    if (!p) return;
+    p.innerHTML = '';
+
+    const edu = document.createElement('div');
+    edu.className = 'edu-box';
+    edu.innerHTML = `<div class="edu-icon">ℹ️</div><div>These permission states are usually <b>per-site</b> (for this page’s origin), not global browser settings.</div>`;
+    p.appendChild(edu);
+
+    if (!navigator.permissions?.query) {
+      this.addItem(p, 'risk', 'Permissions API', 'Unavailable', 'Your browser does not expose permission states via the Permissions API.', '', 'low');
       this.updateGrade();
-    }, 100);
+      return;
+    }
+
+    const checks = [
+      { name: 'geolocation', label: 'Geo Permission', grantedSev: 'med' },
+      { name: 'notifications', label: 'Notif Permission', grantedSev: 'med' },
+      { name: 'camera', label: 'Camera Permission', grantedSev: 'high' },
+      { name: 'microphone', label: 'Mic Permission', grantedSev: 'high' }
+    ];
+
+    for (const c of checks) {
+      try {
+        const result = await navigator.permissions.query({ name: c.name });
+        const state = result.state; // granted/denied/prompt
+        const val = state.toUpperCase() + (state === 'granted' ? ' (Exposed)' : state === 'denied' ? ' (Protected)' : '');
+        const sev = (state === 'granted') ? c.grantedSev : (state === 'denied') ? 'safe' : 'low';
+
+        this.addItem(
+          p, 'risk', c.label, val,
+          'Permission state for this site.',
+          state === 'granted' ? 'Granted means a page can access this feature without prompting again.' : 'Prompt/Denied reduces passive access.',
+          sev
+        );
+      } catch (e) {
+        // some browsers throw on certain names
+      }
+    }
+
+    this.updateGrade();
+  },
+
+  async fetchPublicIP() {
+    if (!ENABLE_PUBLIC_IP_CHECK) return null;
+
+    for (const url of PUBLIC_IP_ENDPOINTS) {
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        const json = await res.json();
+        if (json?.ip) return json.ip;
+      } catch (e) {}
+    }
+    return null;
+  },
+
+  isPrivateIP(ip) {
+    if (!ip) return false;
+    // IPv4 RFC1918 ranges
+    if (ip.startsWith('10.')) return true;
+    if (ip.startsWith('192.168.')) return true;
+    const m = ip.match(/^172\.(\d+)\./);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      return n >= 16 && n <= 31;
+    }
+    // localhost
+    if (ip === '127.0.0.1') return true;
+    return false;
   },
 
   async scanNetwork(p) {
     if (!p) return;
     p.innerHTML = '';
-    
-    this.clearRisks(['Connection', 'Local IP', 'WebRTC']);
 
-    const h = document.createElement('div'); h.innerHTML = `<button class="sui-btn sui-btn-sm sui-btn-secondary" style="width:100%;margin-bottom:16px;padding:12px">↻ Refresh Network</button>`; h.onclick=()=>this.scanNetwork(p); p.appendChild(h);
+    // Public IP / “VPN likely” heuristic (optional)
+    if (ENABLE_PUBLIC_IP_CHECK) {
+      document.getElementById('net-note').innerText = 'Public IP check enabled (can be disabled in code).';
 
-    if (navigator.connection) {
-      this.addItem(p, 'info', 'Connection', navigator.connection.effectiveType);
+      const prevIP = Storage.get('publicIP_last', null);
+      const ip = await this.fetchPublicIP();
+      State.publicIP = ip;
+
+      if (ip) {
+        const changed = (!!prevIP && prevIP !== ip);
+        State.vpnLikely = changed ? true : false;
+
+        this.addItem(
+          p, 'risk', 'Public IP',
+          ip,
+          'Every website can see your public IP.',
+          'VPNs typically change your public IP. This check is a simple indicator, not a guarantee.',
+          'low'
+        );
+
+        this.addItem(
+          p, 'risk', 'VPN / Proxy Indicator',
+          changed ? 'Likely Active (IP changed)' : (prevIP ? 'Not Detected (no change)' : 'Unknown (first scan)'),
+          'Heuristic based on IP change.',
+          changed ? 'Good sign: public IP changed since last scan.' : 'If you toggled VPN and nothing changed, verify the VPN is truly enabled.',
+          changed ? 'safe' : (prevIP ? 'med' : 'low')
+        );
+
+        Storage.set('publicIP_last', ip);
+      } else {
+        State.vpnLikely = null;
+        this.addItem(
+          p, 'risk', 'Public IP',
+          'Unavailable',
+          'Public IP endpoint blocked/unreachable.',
+          'Some networks block external checks. VPN indicator will be unavailable.',
+          'low'
+        );
+      }
+    } else {
+      document.getElementById('net-note').innerText = '';
+      this.addItem(p, 'risk', 'Public IP', 'Disabled', 'Public IP checks are turned off in code.', '', 'low');
     }
-    
+
+    // Connection info (footprint)
+    if (navigator.connection?.effectiveType) {
+      this.addItem(p, 'info', 'Connection', navigator.connection.effectiveType, 'Network hint: fast/slow type.', '', 'low');
+    }
+
+    // WebRTC candidate leak check (IMPROVED: use STUN + parse candidate types)
+    let foundPrivate = null;
+    let foundPublic = null;
+    let foundAny = false;
+
+    const addCandidate = (candidateStr) => {
+      foundAny = true;
+      // Find any IPv4 in candidate
+      const m = candidateStr.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
+      if (!m) return;
+
+      const ip = m[0];
+      const isPriv = App.isPrivateIP(ip);
+
+      // candidate type: host/srflx/relay
+      const typeMatch = candidateStr.match(/ typ (\w+)/);
+      const typ = typeMatch ? typeMatch[1] : 'unknown';
+
+      if (isPriv && !foundPrivate) foundPrivate = { ip, typ };
+      if (!isPriv && !foundPublic) foundPublic = { ip, typ };
+    };
+
     try {
-      const pc = new RTCPeerConnection({iceServers: []});
-      pc.createDataChannel('');
-      pc.createOffer().then(o => pc.setLocalDescription(o));
-      let leakFound = false;
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      });
+      pc.createDataChannel('x');
+
       pc.onicecandidate = (e) => {
-        if (e.candidate) {
-          const match = e.candidate.candidate.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
-          if (match) {
-            leakFound = true;
-            State.webRTCSafe = false;
-            this.addItem(p, 'risk', 'Local IP', match[0], 'WEBRTC LEAK DETECTED.', 'Your real IP is exposed.', true);
-          }
-        }
+        if (e.candidate?.candidate) addCandidate(e.candidate.candidate);
       };
-      setTimeout(() => {
-        pc.close();
-        if(!leakFound) {
-           State.webRTCSafe = true;
-           this.addItem(p, 'risk', 'WebRTC', 'Protected', 'No IP leak detected.', '', false);
-        }
-        this.updateGrade();
-      }, 1000);
-    } catch (e) { this.addItem(p, 'risk', 'WebRTC', 'Protected', '', '', false); }
+
+      const offer = await pc.createOffer({ offerToReceiveAudio: false, offerToReceiveVideo: false });
+      await pc.setLocalDescription(offer);
+
+      await new Promise(r => setTimeout(r, 1200));
+      pc.close();
+
+      if (foundPrivate) {
+        State.webRTCSafe = false;
+        this.addItem(
+          p, 'risk', 'WebRTC Local Address',
+          `${foundPrivate.ip} (${foundPrivate.typ})`,
+          'A local/private IP was exposed via WebRTC.',
+          'This can weaken VPN privacy and help fingerprint your network.',
+          'high'
+        );
+      } else if (foundAny) {
+        State.webRTCSafe = true;
+        this.addItem(
+          p, 'risk', 'WebRTC Local Address',
+          'Hidden (no private IP found)',
+          'No private IP was exposed via WebRTC candidates.',
+          'Modern browsers may use mDNS or block host candidates.',
+          'safe'
+        );
+      } else {
+        State.webRTCSafe = null;
+        this.addItem(
+          p, 'risk', 'WebRTC Local Address',
+          'Unknown',
+          'No candidates were collected (blocked/inconclusive).',
+          'Some browsers restrict WebRTC exposure by default.',
+          'low'
+        );
+      }
+
+      if (foundPublic) {
+        this.addItem(
+          p, 'info', 'WebRTC Public Candidate',
+          `${foundPublic.ip} (${foundPublic.typ})`,
+          'WebRTC can reveal a public-facing IP candidate.',
+          'Not always a “leak”, but still a network identifier.',
+          'low'
+        );
+      }
+    } catch (e) {
+      State.webRTCSafe = null;
+      this.addItem(
+        p, 'risk', 'WebRTC Local Address',
+        'Unavailable',
+        'WebRTC check failed.',
+        'Some environments block WebRTC.',
+        'low'
+      );
+    }
+
+    this.updateGrade();
   },
 
   scanIdentity(p) {
     if (!p) return;
     p.innerHTML = '';
-    this.clearRisks(['Browser Privacy']);
 
     const ua = navigator.userAgent;
-    State.isBrave = navigator.brave !== undefined;
-    State.isFirefox = ua.toLowerCase().includes('firefox');
-    const isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor) && !State.isBrave;
-    
-    if(isChrome) {
-       this.addItem(p, 'risk', 'Browser Privacy', 'High Risk', 'Standard Chrome tracks extensively.', 'Switch to Brave/Firefox.', false); 
-    } else {
-       this.addItem(p, 'risk', 'Browser Privacy', 'Good', 'Privacy-focused browser detected.', '', false);
-    }
+    const uaLower = ua.toLowerCase();
+    State.isBrave = (navigator.brave !== undefined);
+    State.isFirefox = uaLower.includes('firefox');
 
-    this.addItem(p, 'info', 'User Agent', ua, 'Browser "ID Card".');
-    this.addItem(p, 'info', 'Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone);
+    const isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor) && !State.isBrave;
+
+    this.addItem(
+      p, 'risk', 'Browser Privacy',
+      isChrome ? 'Standard Chrome (Higher Tracking Risk)' : (State.isBrave || State.isFirefox ? 'Privacy-Forward Browser' : 'Mixed'),
+      'Browser choice impacts tracking exposure.',
+      isChrome ? 'Chrome defaults can be more tracking-friendly. Consider Brave/Firefox.' : 'Better defaults and stronger privacy controls.',
+      isChrome ? 'med' : 'safe'
+    );
+
+    this.addItem(p, 'info', 'User Agent', ua, 'Browser “ID card”. Often used in fingerprints.', '', 'low');
+    this.addItem(p, 'info', 'Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone, 'Timezone narrows location and fingerprint uniqueness.', '', 'low');
   },
 
   scanHardware(p) {
     if (!p) return;
     p.innerHTML = '';
-    this.addItem(p, 'info', 'Screen', `${screen.width}x${screen.height}`);
-    this.addItem(p, 'info', 'Cores', navigator.hardwareConcurrency);
-    this.addItem(p, 'info', 'RAM', navigator.deviceMemory ? `${navigator.deviceMemory} GB` : '?');
+    this.addItem(p, 'info', 'Screen', `${screen.width}×${screen.height}`, 'Screen size helps identify device model.', '', 'low');
+    this.addItem(p, 'info', 'Cores', navigator.hardwareConcurrency ?? 'unknown', 'CPU cores can fingerprint hardware tier.', '', 'low');
+    this.addItem(p, 'info', 'RAM', navigator.deviceMemory ? `${navigator.deviceMemory} GB` : 'unknown', 'Approx RAM is a fingerprint clue.', '', 'low');
   },
 
   scanFP(p) {
@@ -603,120 +848,310 @@ const App = {
     p.innerHTML = '';
     try {
       const cv = document.getElementById('fp-canvas');
-      const ctx = cv.getContext('2d');
-      ctx.textBaseline='top'; ctx.font='14px Arial';
-      ctx.fillStyle='#f60'; ctx.fillRect(125,1,62,20);
-      ctx.fillStyle='#069'; ctx.fillText('Privacy!',2,15);
-      let s = cv.toDataURL();
-      let h = 0x811c9dc5;
-      for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24)}
-      const hash = (h>>>0).toString(16).toUpperCase();
-      this.addItem(p, 'info', 'Canvas ID', hash, 'GPU Rendering Hash.');
-    } catch(e){}
+      const ctx = cv.getContext('2d', { willReadFrequently: true });
+
+      ctx.clearRect(0,0,cv.width,cv.height);
+      ctx.textBaseline = 'top';
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#f60';
+      ctx.fillRect(125, 1, 62, 20);
+      ctx.fillStyle = '#069';
+      ctx.fillText('Privacy!', 2, 15);
+
+      const s = cv.toDataURL();
+      let h = 0x811c9dc5; // FNV-like
+      for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+      }
+      const hash = (h >>> 0).toString(16).toUpperCase();
+
+      this.addItem(p, 'info', 'Canvas ID', hash, 'Canvas rendering differs per device/GPU.', 'Used for fingerprinting that can survive cookie clears.', 'low');
+    } catch (e) {
+      this.addItem(p, 'info', 'Canvas ID', 'Unavailable', 'Canvas fingerprint test failed.', '', 'low');
+    }
   },
 
   scanSensors(p) {
     if (!p) return;
     p.innerHTML = '';
-    // Manual Gyro Check
-    this.addBtn(p, 'gyro', 'Test Gyroscope', '🔄', (btn) => {
-      return new Promise((res) => {
-        window.addEventListener('devicemotion', (e) => {
-           if(e.accelerationIncludingGravity.x) btn.innerHTML = `x:${e.accelerationIncludingGravity.x.toFixed(1)}`;
-        }, {once:true});
-        setTimeout(()=>{ 
-          this.addItem(p,'risk','Motion','Exposed', 'Site can read device tilt.', '', true); 
-          res(); 
-        }, 500);
+
+    this.addBtn(p, 'gyro', 'Test Gyroscope / Motion', '📡', async () => {
+      // iOS requires explicit permission
+      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        const perm = await DeviceMotionEvent.requestPermission();
+        if (perm !== 'granted') return { status: 'blocked' };
+      }
+
+      return await new Promise((resolve) => {
+        let gotEvent = false;
+
+        const handler = (e) => {
+          gotEvent = true;
+          window.removeEventListener('devicemotion', handler);
+          resolve({ status: 'exposed' });
+        };
+
+        window.addEventListener('devicemotion', handler, { once: true });
+
+        setTimeout(() => {
+          if (!gotEvent) {
+            window.removeEventListener('devicemotion', handler);
+            resolve({ status: 'blocked' });
+          }
+        }, 1200);
       });
     });
+
+    this.addItem(
+      p, 'risk', 'Motion Risk',
+      'Permission-gated',
+      'Motion sensors can add behavioral and device fingerprint data.',
+      'If granted, pages can observe device tilt/movement.',
+      'low'
+    );
   },
 
   scanSensitive(p) {
     if (!p) return;
     p.innerHTML = '';
-    this.clearRisks(['Contacts', 'Files']);
-    
-    // Explicit manual check buttons
-    this.addBtn(p, 'contacts', 'Test Contacts', '👥', async (btn) => {
-        const c = await navigator.contacts.select(['name'], {multiple:true});
-        this.addItem(p, 'risk', 'Contacts', 'Exposed', 'User granted access.', '', true);
-    });
-    
-    this.addBtn(p, 'files', 'Test Files', '📂', async (btn) => {
-      if('showOpenFilePicker' in window) await window.showOpenFilePicker();
-      else { const i=document.createElement('input'); i.type='file'; i.click(); }
-      this.addItem(p, 'risk', 'Files', 'Exposed', 'User opened file picker.', '', false);
-    });
-  },
 
-  async scanFonts(p) {
-    if (!p) return;
-    p.innerHTML = '';
-    this.addItem(p, 'info', 'Fonts', 'System Default', 'System fonts detected.');
+    this.addBtn(p, 'contacts', 'Test Contacts', '👥', async () => {
+      if (!('contacts' in navigator) || !navigator.contacts?.select) return { status: 'unsupported' };
+      try {
+        await navigator.contacts.select(['name'], { multiple: true });
+        return { status: 'exposed' };
+      } catch (e) {
+        if (e?.name === 'AbortError') return { status: 'cancelled' };
+        return { status: 'blocked' };
+      }
+    });
+
+    this.addBtn(p, 'files', 'Test File Picker', '📂', async () => {
+      try {
+        if ('showOpenFilePicker' in window) {
+          await window.showOpenFilePicker();
+          return { status: 'exposed' };
+        }
+        // fallback input
+        return await new Promise((resolve) => {
+          const i = document.createElement('input');
+          i.type = 'file';
+          i.onchange = () => resolve({ status: 'exposed' });
+          i.oncancel = () => resolve({ status: 'cancelled' });
+          i.click();
+          setTimeout(() => resolve({ status: 'cancelled' }), 2500);
+        });
+      } catch (e) {
+        if (e?.name === 'AbortError') return { status: 'cancelled' };
+        return { status: 'blocked' };
+      }
+    });
+
+    this.addItem(
+      p, 'risk', 'Sensitive APIs',
+      'Manual tests',
+      'These require user interaction.',
+      'Canceling a prompt is not the same as being protected permanently.',
+      'low'
+    );
   },
 
   scanMedia(p) {
     if (!p) return;
     p.innerHTML = '';
-    this.addBtn(p, 'media', 'Scan Devices', '📷', async (btn) => {
-      const devs = await navigator.mediaDevices.enumerateDevices();
-      devs.forEach(d => this.addItem(p, 'info', d.kind, d.label||'Hidden'));
+
+    this.addBtn(p, 'media', 'Scan Media Devices', '📷', async () => {
+      if (!navigator.mediaDevices?.enumerateDevices) return { status: 'unsupported' };
+      try {
+        const devs = await navigator.mediaDevices.enumerateDevices();
+        // Labels are often blank until permission granted
+        const labelsVisible = devs.some(d => (d.label || '').trim().length > 0);
+
+        this.addItem(
+          p, 'info', 'Device Labels',
+          labelsVisible ? 'Visible' : 'Hidden',
+          'Mic/camera labels are more identifying when exposed.',
+          labelsVisible ? 'Labels visible (likely permission granted earlier).' : 'Labels hidden until permission granted.',
+          labelsVisible ? 'med' : 'low'
+        );
+
+        devs.slice(0, 10).forEach(d => {
+          this.addItem(p, 'info', d.kind, d.label || 'Hidden', 'Device inventory fingerprint.', '', 'low');
+        });
+
+        return { status: labelsVisible ? 'exposed' : 'blocked' };
+      } catch (e) {
+        if (e?.name === 'NotAllowedError') return { status: 'blocked' };
+        if (e?.name === 'AbortError') return { status: 'cancelled' };
+        return { status: 'blocked' };
+      }
     });
   },
 
   scanBehavior(p) {
     if (!p) return;
     p.innerHTML = '';
+
     const demo = document.createElement('div');
     demo.className = 'touch-demo';
-    demo.innerHTML = `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--sui-text-muted);font-size:14px;text-align:center">👆 Touch Here</div>`;
+    demo.innerHTML = `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--sui-text-muted);font-size:14px;text-align:center">👆 Move / Touch Here</div>`;
     p.appendChild(demo);
-    
+
     const draw = (x, y) => {
       const dot = document.createElement('div');
       dot.className = 'touch-trail';
-      dot.style.left = x+'px'; dot.style.top = y+'px';
+      dot.style.left = x + 'px';
+      dot.style.top = y + 'px';
       dot.style.background = 'var(--sui-blue-primary)';
       demo.appendChild(dot);
-      setTimeout(()=>dot.remove(), 500);
+      setTimeout(() => dot.remove(), 500);
     };
-    
+
     demo.addEventListener('mousemove', e => draw(e.offsetX, e.offsetY));
-    demo.addEventListener('touchmove', e => { 
-      e.preventDefault(); 
+    demo.addEventListener('touchmove', e => {
+      e.preventDefault();
       const rect = demo.getBoundingClientRect();
       const touch = e.touches[0];
       draw(touch.clientX - rect.left, touch.clientY - rect.top);
     }, { passive: false });
+
+    this.addItem(
+      p, 'info', 'Behavior Demo',
+      'Interactive',
+      'Mouse/touch movement can be recorded and analyzed.',
+      'Some systems use this for biometrics / bot detection.',
+      'low'
+    );
+  },
+
+  scanFonts(p) {
+    if (!p) return;
+    p.innerHTML = '';
+    // simple educational stub (full font fingerprinting requires measurement tricks)
+    this.addItem(
+      p, 'info', 'Font Fingerprint',
+      'Basic',
+      'Installed fonts can uniquely identify a device.',
+      'Advanced detection can test many fonts via rendering differences.',
+      'low'
+    );
   },
 
   scanBattery(p) {
     if (!p) return;
     p.innerHTML = '';
-    if(navigator.getBattery) navigator.getBattery().then(b => {
-      this.addItem(p, 'info', 'Level', `${(b.level*100).toFixed(0)}%`);
+    if (navigator.getBattery) {
+      navigator.getBattery().then(b => {
+        this.addItem(p, 'info', 'Level', `${Math.round(b.level * 100)}%`, 'Battery state can be a short-lived identifier.', '', 'low');
+        this.addItem(p, 'info', 'Charging', b.charging ? 'Yes' : 'No', 'Charging status is another signal.', '', 'low');
+      }).catch(() => {
+        this.addItem(p, 'info', 'Battery', 'Unavailable', 'Battery API blocked or unsupported.', '', 'low');
+      });
+    } else {
+      this.addItem(p, 'info', 'Battery', 'Unavailable', 'Battery API not supported in this browser.', '', 'low');
+    }
+  },
+
+  async rescanActionable() {
+    // only refresh actionables for speed
+    await this.scanProtection(document.getElementById('panel-prot'));
+    await this.scanPermissions(document.getElementById('panel-api'));
+    await this.scanNetwork(document.getElementById('panel-net'));
+    this.scanIdentity(document.getElementById('panel-id'));
+    this.setLastScan();
+    this.updateGrade();
+  },
+
+  async init(opts={ fresh:true }) {
+    if (opts.fresh) this.resetUI();
+
+    // Theme restore
+    const savedTheme = Storage.get('theme', 'light');
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    const toggle = document.getElementById('theme-toggle');
+    if (toggle) toggle.checked = (savedTheme === 'dark');
+
+    // Sections
+    this.mkSec('tips', '🎓', 'Smart Action Plan', 'Based on your results', 'We analyzed your settings. Here is your personalized to-do list.', true);
+
+    this.mkSec('prot', '🛡️', 'Protection Check', 'AdBlock, Cookies, GPC', 'Your first line of defense.');
+    this.mkSec('api', '🚦', 'Permissions API', 'Auto-detected site permissions', 'Settings already configured for this site.');
+    this.mkSec('net', '🌐', 'Network Exposure', 'Public IP, WebRTC', 'What sites see about your network.');
+    this.mkSec('id', '📱', 'Identity', 'Browser, Timezone', 'Software-level identifiers.');
+
+    this.mkSec('hw', '🔧', 'Hardware Specs', 'Screen, CPU, RAM', 'Device properties.');
+    this.mkSec('fp', '👁', 'Invisible Fingerprints', 'Canvas ID', 'Advanced tracking techniques.');
+    this.mkSec('priv', '🔐', 'Sensitive Access', 'Contacts, Files', 'Manual tests for sensitive APIs.');
+    this.mkSec('sen', '📡', 'Sensors & Motion', 'Gyro / motion permission', 'Phones are sensor arrays.');
+    this.mkSec('beh', '👆', 'Behavior', 'Touch & Mouse demo', 'Movement data can be captured.');
+    this.mkSec('font', '🔤', 'Font Inventory', 'Fingerprint concept', 'Font sets are unique.');
+    this.mkSec('med', '📷', 'Media Devices', 'Camera/mic inventory', 'Hardware identifiers.');
+    this.mkSec('bat', '🔋', 'Battery Status', 'Level, charging', 'Short-lived identifier.');
+
+    // Run scans
+    await this.scanProtection(document.getElementById('panel-prot'));
+    await this.scanPermissions(document.getElementById('panel-api'));
+    await this.scanNetwork(document.getElementById('panel-net'));
+    this.scanIdentity(document.getElementById('panel-id'));
+
+    this.scanHardware(document.getElementById('panel-hw'));
+    this.scanFP(document.getElementById('panel-fp'));
+    this.scanSensitive(document.getElementById('panel-priv'));
+    this.scanSensors(document.getElementById('panel-sen'));
+    this.scanBehavior(document.getElementById('panel-beh'));
+    this.scanFonts(document.getElementById('panel-font'));
+    this.scanMedia(document.getElementById('panel-med'));
+    this.scanBattery(document.getElementById('panel-bat'));
+
+    // Events
+    window.addEventListener('online', async () => {
+      SUI?.toast?.info?.('Network Changed', 'Rescanning network…');
+      await this.scanNetwork(document.getElementById('panel-net'));
+      this.updateGrade();
+      this.setLastScan();
     });
+
+    document.getElementById('global-rescan').onclick = async () => {
+      SUI?.toast?.success?.('Rescanning', 'Updating analysis…');
+      await this.rescanActionable();
+    };
+
+    document.getElementById('theme-toggle').addEventListener('change', (e) => {
+      const theme = e.target.checked ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      Storage.set('theme', theme);
+    });
+
+    this.setLastScan();
+    this.updateGrade();
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => App.init());
+document.addEventListener('DOMContentLoaded', () => App.init({ fresh:true }));
 
-// PWA Logic
+// ───────────────────────── PWA Update Toast ─────────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').then(reg => {
     if (reg.waiting) showUpdateToast(reg.waiting);
     reg.onupdatefound = () => {
       const newWorker = reg.installing;
+      if (!newWorker) return;
       newWorker.onstatechange = () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) showUpdateToast(newWorker);
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          showUpdateToast(newWorker);
+        }
       };
     };
-  });
+  }).catch(() => { /* ignore */ });
+
   navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
 }
+
 function showUpdateToast(worker) {
-  const t = document.getElementById('update-toast'); t.classList.add('visible');
+  const t = document.getElementById('update-toast');
+  if (!t) return;
+  t.classList.add('visible');
   document.getElementById('btn-update').onclick = () => worker.postMessage({ type: 'SKIP_WAITING' });
 }
 </script>

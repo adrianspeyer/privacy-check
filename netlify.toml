@@ -1,9 +1,14 @@
 [build]
   publish = "."
 
-# 1. Logic Files: Never Cache (Always check for updates)
+# 1) Logic & shell: always revalidate
 [[headers]]
   for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/index.html"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
@@ -12,7 +17,7 @@
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
-# 2. Asset Files: Cache Forever (Instant load)
+# 2) Asset files: cache long-term
 [[headers]]
   for = "/*.png"
   [headers.values]

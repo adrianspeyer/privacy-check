@@ -8,99 +8,93 @@ No hacks. No tricks. Just standard browser APIs doing what they were designed to
 
 ## What Is This?
 
-Privacy Check is a free, open-source tool that shows you — in real time — all the data websites can silently collect about you. It runs entirely on your device. Nothing is sent anywhere. Zero tracking. Zero irony.
+Privacy Check is a free, open-source tool that shows you — in real time — what websites can silently learn about you using standard browser APIs. It runs entirely on your device. Nothing is sent anywhere. **Zero tracking. Zero irony.**
 
 It was built as an educational tool for **seniors, teens, and anyone who wants to understand what they're giving away** every time they open a browser.
 
 ---
 
-## 🧠 The "Dual-Tier" Logic
+## 🧠 How to Read the Results
 
-Unlike other tools that give you a scary "F" just because you have a unique screen size, Privacy Check splits your results into two meaningful categories:
+Privacy Check splits your results into two useful categories:
 
-### 1. 🛡️ Actionable Security (The Grade)
+### 🛡️ Actionable Security (Your Grade)
+Things you can fix. Your A–F grade focuses on practical risks like:
+- WebRTC leaks (local IP exposure)
+- Tracker blocking / ad blocking
+- Global Privacy Control (GPC)
+- Browser permission settings (camera, mic, motion, notifications, etc.)
 
-Things you can actually fix. Your A–F grade is based **only** on these risks.
-
-- **WebRTC Leaks:** Is your real IP visible through your VPN?
-- **Ad Blocking:** Are you stopping invisible trackers?
-- **Global Privacy Control:** Is your browser signaling "Do Not Sell"?
-- **Permissions:** Have you accidentally granted access to Motion or Camera?
-
-### 2. 👣 Digital Footprint (The Complexity)
-
-Things that identify you but are hard to change. These don't lower your grade, but they show how unique you are.
-
-- **Hardware:** Screen resolution, CPU cores, RAM.
-- **Fingerprints:** Canvas rendering, Audio context hashes.
-- **Identity:** User Agent string, Timezone, System Fonts.
+### 👣 Digital Footprint (Your Uniqueness)
+Things that identify you but are harder to change (and shouldn’t “fail” you), like:
+- Hardware traits (screen, CPU cores, RAM)
+- Fingerprinting signals (canvas rendering, audio context)
+- Identity traits (user agent, timezone, fonts)
 
 ---
 
 ## ✨ Features
 
-- **🔄 Reactive Engine** — Toggle your VPN or change a setting, then hit the sticky "Rescan" button. The dashboard updates instantly without a page reload.
-- **🎓 Smart Action Plan** — A dynamic guide that reads your situation (e.g., "You have a VPN, but WebRTC is leaking") and gives tailored advice.
-- **📱 Native App Feel** — High-performance PWA. Installable, offline-ready, native scroll physics.
-- **👆 Interactive Demos** — Visualizes mouse and touch tracking in real time.
-- **♿ Accessible Design** — WCAG 2.1 AA compliant. High contrast, screen reader friendly, never relies on color alone.
+- **🔄 Rescan Button** — Toggle your VPN or change a setting, then rescan to see changes instantly.
+- **🎓 Smart Action Plan** — Personalized guidance based on what the tool detects.
+- **📱 PWA (Installable App)** — Install on iOS/Android. Works offline. Feels native.
+- **👆 Interactive Demos** — Visualizes touch + mouse tracking behavior in real time.
+- **♿ Accessible** — WCAG-minded: keyboard friendly, screen reader friendly, never relies on color alone.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Zero Dependencies:** Single HTML file (~60KB). No build step.
-- **Design System:** [Speyer UI](https://github.com/adrianspeyer/speyer-ui) (CDN-based).
-- **Offline Core:** Service Worker with "Nagging Toast" updates.
+- Single HTML file (no build step)
+- [Speyer UI (SUI)](https://github.com/adrianspeyer/speyer-ui) via CDN
+- Service Worker for offline caching + update prompts
+- No frameworks. No analytics. No dependencies.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Option 1: Just Open It
-
-Download `index.html` and open it in any browser. Works 100% locally.
+Download `index.html` and open it in your browser. Everything runs locally.
 
 ### Option 2: Deploy as a PWA
-
-Drop these files on any static host (Netlify, Vercel, GitHub Pages):
+Drop these files onto any static host served over HTTPS (Netlify, Vercel, GitHub Pages, Cloudflare Pages):
 
 ```text
 privacy-check/
 ├── index.html       # The application
 ├── manifest.json    # PWA install config
-├── sw.js            # Offline logic & updates
+├── sw.js            # Offline caching + update flow
 ├── icon-192.png     # App icon
 └── icon-512.png     # App icon
 ```
 
-> **Note for Netlify Users:**  
-> Ensure `sw.js` is served with `Cache-Control: no-cache` so updates happen immediately.  
-> A `netlify.toml` is included in the repo for this purpose.
+---
+
+## 🌐 Deploy Notes (Netlify)
+
+This repo includes a `netlify.toml` that helps ensure users get the latest logic quickly (especially `index.html` and `sw.js`).
 
 ---
 
 ## Who Is This For?
 
-- **Seniors** who want to understand what "tracking" actually looks like
-- **Teens** who grew up online but never looked under the hood
-- **Teachers** looking for a safe, visual demo for digital literacy
-- **You**, checking if your VPN is actually working
+- **Seniors** who want to understand what “tracking” actually looks like  
+- **Teens** who grew up online but never looked under the hood  
+- **Teachers** who want a safe, visual demo for digital literacy classes  
+- **Anyone** who wants to verify whether their browser/VPN setup is actually protecting them  
 
 ---
 
 ## Contributing
 
-Found a new browser API that leaks data?  
-Have a clearer way to explain canvas fingerprinting?
-
-Pull requests are welcome.
+Found a browser API that leaks data? Have a clearer way to explain a fingerprinting technique? Pull requests are welcome.
 
 ---
 
 ## License
 
-MIT — Use it, fork it, teach with it.
+MIT — use it, fork it, teach with it.
 
 ---
 
