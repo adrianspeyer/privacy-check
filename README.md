@@ -1,101 +1,127 @@
 # 🔍 Privacy Check
 
-Audit your digital footprint. Adjust settings. Rescan to verify your privacy.
+**Audit your digital footprint. Adjust settings. Rescan to verify your privacy.**
 
-Privacy Check is a free, open-source tool that shows you — in real time — what modern websites can silently learn about you using standard browser APIs. It runs on your device and does not ship analytics or trackers.
-
----
-
-## What it shows
-
-Privacy Check highlights two kinds of information:
-
-- **Actionable Security** (things you can improve)
-  - Ad blocking signals
-  - Global Privacy Control
-  - Permission states (camera, mic, notifications, etc.)
-  - Network/WebRTC exposure
-  - Manual “sensitive access” tests (only when you tap)
-
-- **Device Footprint** (things that make you unique)
-  - Hardware signals (screen, CPU, RAM)
-  - Fingerprinting demos (canvas)
-  - Behavior demo (mouse/touch trails)
-  - Media and battery signals (varies by browser)
+No hacks. No tricks. Just standard browser APIs doing what they were designed to do. The results might surprise you.
 
 ---
 
-## Quick start
+## What Is This?
 
-### Option A — Local (open the file)
-1. Download the repo
-2. Open `index.html` in a browser
+Privacy Check is a free, open-source tool that shows you — in real time — what data websites can silently collect about you.
 
-Most features work locally.
-The VPN / public IP test may be limited locally because it uses a Netlify endpoint when deployed.
+- Runs entirely on your device
+- No accounts, no tracking, no analytics
+- No uploads, no servers storing your results
 
-### Option B — Deploy on Netlify (recommended)
-1. Push the repo to GitHub
-2. In Netlify, create a new site from the repo
-3. Deploy
-
-That’s it. This repo includes a `netlify.toml` and a Netlify Function so the VPN test works out of the box.
+Built as an educational tool for **seniors, teens, teachers, and anyone who wants to understand what they’re giving away** every time they open a browser.
 
 ---
 
-## File structure
+## The “Dual-Tier” Logic
 
-~~~text
-privacy-check/
-├── index.html
-├── sw.js
-├── manifest.json
-├── icon-192.png
-├── icon-512.png
-├── netlify.toml
-├── netlify/
-│   └── functions/
-│       └── ip.js
-└── README.md
-~~~
+Most privacy tools give you a scary grade because your screen size is unique. That’s not helpful.
 
----
+Privacy Check splits results into two meaningful categories:
 
-## VPN test (simple and fast)
+### 1) 🛡️ Actionable Security (The Grade)
+These are risks you can realistically fix. Your A–F grade is based **only** on these items.
 
-There is no built-in browser API that reveals your public IP address directly.
-To make VPN testing easy, the app includes a button-based test that captures your public IP when you request it.
+Examples:
+- **Ad Blocking** (are tracking scripts being blocked?)
+- **Global Privacy Control** (are you signaling “Do Not Sell/Share”?)
+- **Permissions** (have you granted Camera/Mic/Location already?)
+- **WebRTC exposure** (are candidates revealing network details?)
 
-How to test:
-1. Open **Network Exposure**
-2. Press **Capture / Compare IP** once (VPN off)
-3. Turn VPN on
-4. Press **Capture / Compare IP** again
+### 2) 👣 Device Footprint (The Complexity)
+These identify you, but are often hard to change. They do **not** lower your grade — they teach you how unique your setup is.
 
-If the IP changes, the app labels it as a likely VPN / route change.
-(That can also happen if you switch networks — so it’s “likely”, not a guarantee.)
-
-Netlify users:
-- The public IP is fetched from your own deploy using `/.netlify/functions/ip`.
-
-Non-Netlify hosting:
-- The app may fall back to a public IP endpoint only when you click the VPN test button.
-- You can disable the fallback by setting `ALLOW_IPIFY_FALLBACK = false` in `index.html`.
+Examples:
+- Hardware (screen, RAM, cores)
+- Fingerprints (canvas rendering)
+- Identity signals (user agent, timezone)
 
 ---
 
-## Updating versions (maintainers)
+## ✨ Features
 
-When you publish a new version:
-- Update the version in **two places**
-  - `index.html` → `APP_VERSION`
-  - `sw.js` → `CACHE_NAME`
+- **🔄 Rescan Button** — Updates results without rebuilding the UI (no jumping/scrolling).
+- **🧪 VPN Test (Simple)** — A two-step check that compares your public IP:
+  1. Press **VPN Test** once (VPN OFF) to save a baseline IP.
+  2. Turn VPN ON and press **VPN Test** again to compare.
+- **🎓 Smart Action Plan** — Generates a simple “what to do next” summary from your results.
+- **📊 Privacy Report Card** — Overall A–F grade with a progress bar.
+- **🎛️ Organized Sections** — Clear separation between actionable risks and fingerprint/footprint data.
+- **🌗 Light & Dark Mode** — Toggle in the sticky header.
+- **♿ Accessible** — Keyboard friendly and readable (never relies on color alone).
+- **📱 PWA Ready** — Installable, offline capable, designed for mobile “native” feel.
 
-Example:
-- `APP_VERSION = 'v3.9'`
-- `CACHE_NAME = 'privacy-check-v3.9'`
+---
 
-Users will see an “Update Available” toast when a new service worker is installed.
+## 🛠️ Tech Stack
+
+- Single `index.html` (no build step)
+- Speyer UI (SUI) via CDN
+- Inter font via Google Fonts
+- Service worker for offline caching + controlled updates
+- Netlify-friendly (includes `netlify.toml`)
+
+---
+
+## 🚀 Getting Started
+
+### Option 1: Open Locally
+Download `index.html` and open it in a browser.
+
+Note: Some tests behave differently when not served over HTTPS.
+
+### Option 2: Deploy as a PWA (Recommended)
+Deploy the folder on any static host (Netlify, GitHub Pages, Vercel, Cloudflare Pages).
+
+Required files:
+
+    privacy-check/
+    ├── index.html
+    ├── manifest.json
+    ├── sw.js
+    ├── icon-192.png
+    └── icon-512.png
+
+### Option 3: Netlify (Best “Clone & Go”)
+1. Clone the repo
+2. Deploy to Netlify
+3. You’re done
+
+This repo includes a `netlify.toml` that helps ensure service worker updates are picked up reliably.
+
+---
+
+## 🧪 How To Test VPN (Without Confusion)
+
+The VPN test is intentionally simple and user-initiated:
+
+1. Press **VPN Test** once (VPN OFF) → saves baseline public IP  
+2. Turn VPN ON  
+3. Press **VPN Test** again → compares the new IP to baseline  
+
+Results show under **Network Exposure** (baseline IP + latest IP + status).
+
+Important: An IP can change for reasons other than a VPN (mobile network changes, router changes, ISP behavior). This is a “best effort” educational test, not a forensic guarantee.
+
+---
+
+## Who Is This For?
+
+- **Seniors** who want to understand what “tracking” looks like
+- **Teens** who grew up online but never saw what’s under the hood
+- **Teachers** looking for a safe, visual digital literacy demo
+- **Anyone** testing whether privacy tools are actually doing anything
+
+---
+
+## Contributing
+
+Found a browser API I missed? Have a clearer explanation for a data point? PRs are welcome.
 
 ---
 
@@ -104,3 +130,22 @@ Users will see an “Update Available” toast when a new service worker is inst
 MIT — use it, fork it, teach with it.
 
 Made in Canada with love 🇨🇦
+
+---
+
+# Changelog
+
+## v3.8.1
+- Improved VPN testing UX:
+  - Added a single “VPN Test” button in the header
+  - Two-step flow: set baseline (VPN off) → compare (VPN on)
+  - Stores baseline/latest IP and status without UI jumping
+- Stabilized Rescan:
+  - Rescan updates panels in place (no full UI rebuild / no scroll jumping)
+- Service Worker improvements:
+  - Cache version bump
+  - Avoid caching dynamic endpoints (e.g., Netlify functions / public IP calls)
+  - Network-first navigation to pick up new `index.html` reliably
+
+## v3.5
+- Initial public release of Privacy Check PWA with report card, sections, and reactive rescanning
