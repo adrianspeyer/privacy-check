@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.8.5
+- Grade + scoring reliability
+  - Grade now updates immediately when scored items change (scheduled UI update)
+  - Fixed VPN scoring write (was accidentally writing to this.RiskMap)
+  - Browser + Cookies are now advisory (not scored), so “good setup on Chrome” can still earn an A
+  - WebRTC local IP leak is weighted more heavily (as intended)
+
 ## v3.8.4
 - Grade calibration
   - Adjusted grade thresholds so “recommendations” (like Cookies + GPC) don’t force a C

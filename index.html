@@ -202,7 +202,7 @@ body, html { width: 100%; height: 100%; margin:0; background: var(--sui-bg-prima
 <script>
 /* Privacy Check — v3.8.1 (QA + Stable Rescan + VPN Test) */
 
-const APP_VERSION = 'v3.8.4';
+const APP_VERSION = 'v3.8.5';
 document.getElementById('app-version').innerText = APP_VERSION;
 
 // Track actionable issues (High score = Bad)
@@ -352,7 +352,19 @@ const App = {
     return panel;
   },
 
-  clearRisks(keys) { keys.forEach(k => RiskMap.delete(k)); },
+  clearRisks(keys) {
+    keys.forEach(k => { RiskMap.delete(k); FootprintMap.delete(k); });
+    if (typeof this.scheduleGradeUpdate === 'function') this.scheduleGradeUpdate();
+  },
+
+  _gradeRAF: null,
+  scheduleGradeUpdate() {
+    if (this._gradeRAF) return;
+    this._gradeRAF = requestAnimationFrame(() => {
+      this._gradeRAF = null;
+      this.updateGrade();
+    });
+  },
 
   addItem(panel, category, key, val, why, whyTech, isAlert, riskOverride) {
     if (!panel) return;
@@ -377,6 +389,7 @@ const App = {
       }
 
       RiskMap.set(key, riskValue);
+      this.scheduleGradeUpdate();
     } else {
       FootprintMap.set(key, 1);
       dotClass = 'd-dot-l';
@@ -451,16 +464,23 @@ const App = {
     let totalRisk = 0;
     RiskMap.forEach(v => totalRisk += v);
 
-    // Make scoring stable: keep half risks meaningful (0.5) instead of rounding up.
+    // Scoring model (v3.8.5): only a handful of high-signal checks affect the grade.
+    // Typical weights:
+    // - WebRTC leak: 2.0
+    // - Ad blocker missing: 1.0
+    // - VPN likely OFF (after user-tested): 0.5
+    // - GPC off (optional): 0.25
+    // NOTE: Browser brand + cookies do NOT affect grade (they remain educational).
     const risks = totalRisk;
 
     let grade = 'A';
     let pct = 100;
 
-    if (risks >= 3.5) { grade = 'F'; pct = 25; }
-    else if (risks >= 2.5) { grade = 'D'; pct = 50; }
-    else if (risks >= 1.5) { grade = 'C'; pct = 70; }
-    else if (risks >= 0.5) { grade = 'B'; pct = 90; }
+    // Strict thresholds avoid "borderline" setups being penalized.
+    if (risks > 3.0) { grade = 'F'; pct = 25; }
+    else if (risks > 2.0) { grade = 'D'; pct = 45; }
+    else if (risks > 1.0) { grade = 'C'; pct = 65; }
+    else if (risks > 0.5) { grade = 'B'; pct = 85; }
 
     if (uEl) uEl.innerText = (FootprintMap.size * 1.5).toFixed(0);
 
@@ -681,7 +701,8 @@ const App = {
     // - UNCHANGED=> VPN not verified / likely OFF (0.25 risk)
     // - NOT TESTED => neutral (0.00 risk)
     const vpnRisk = status.startsWith('CHANGED') ? 0 : (status === 'UNCHANGED' ? 0.25 : 0);
-    this.RiskMap.set('VPN', vpnRisk);
+    RiskMap.set('VPN', vpnRisk);
+    this.scheduleGradeUpdate();
 
     this.addItem(block, 'info', 'VPN Test', status, 'Compares your public IP across two checks.', 'Click VPN Test once with VPN OFF, then again with VPN ON.');
     this.addItem(block, 'info', 'Baseline Public IP', baseline, '', '');
@@ -742,7 +763,8 @@ const App = {
 
     // Cookies: informational (not graded heavily). If disabled, treat as good.
     const cookiesEnabled = navigator.cookieEnabled;
-    this.addItem(p, 'risk', 'Cookies', cookiesEnabled ? 'Enabled' : 'Blocked', 'Cookies can be used for tracking.', 'Blocking reduces tracking surface (recommended).', false, cookiesEnabled ? 0.25 : 0);
+    // Cookies are educational here (not scored) because many legitimate flows still rely on first-party cookies.
+    this.addItem(p, 'risk', 'Cookies', cookiesEnabled ? 'Enabled' : 'Blocked', 'Cookies can be used for tracking.', 'Blocking reduces tracking surface (recommended).', false, 0);
 
     // Adblock detection (fixed): use a "bait" element with a non-zero size
     const bait = document.createElement('div');
@@ -773,7 +795,7 @@ const App = {
     // Render persisted VPN rows (informational)
     this.renderVPNRows(p);
 
-    this.clearRisks(['Connection', 'Local IP Candidate', 'WebRTC']);
+    this.clearRisks(['Connection', 'Local IP Candidate', 'WebRTC', 'VPN']);
 
     // Connection info
     if (navigator.connection && navigator.connection.effectiveType) {
@@ -796,7 +818,8 @@ const App = {
           if (match) {
             candidateFound = true;
             State.webRTCSafe = false;
-            this.addItem(p, 'risk', 'Local IP Candidate', match[0], 'A local IP candidate was observed via WebRTC.', 'Some setups reveal local network info.', true);
+            // WebRTC local IP leak is high-signal (scored heavily).
+            this.addItem(p, 'risk', 'Local IP Candidate', match[0], 'A local IP candidate was observed via WebRTC.', 'Some setups reveal local network info.', true, 2.0);
           }
         };
 
@@ -826,8 +849,9 @@ const App = {
     State.isFirefox = ua.toLowerCase().includes('firefox');
     const isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor || '') && !State.isBrave;
 
-    if (isChrome) this.addItem(p, 'risk', 'Browser Privacy', 'High Risk', 'Standard Chrome has weaker default privacy protections.', 'Consider Brave or Firefox.', false);
-    else this.addItem(p, 'risk', 'Browser Privacy', 'Better', 'Privacy-focused browser detected.', '', false);
+    // Advisory only (not scored) — many users will run this on Chrome.
+    if (isChrome) this.addItem(p, 'risk', 'Browser Privacy', 'High Risk', 'Standard Chrome has weaker default privacy protections.', 'Consider Brave or Firefox for stronger defaults.', false, 0);
+    else this.addItem(p, 'risk', 'Browser Privacy', 'Better', 'Privacy-focused browser detected.', '', false, 0);
 
     this.addItem(p, 'info', 'User Agent', ua, 'Browser "ID card".', '');
     this.addItem(p, 'info', 'Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown', '', '');
