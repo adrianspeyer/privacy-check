@@ -16,6 +16,40 @@ Privacy Check is a free, open-source tool that shows you — in real time — wh
 
 Built as an educational tool for **seniors, teens, teachers, and anyone who wants to understand what they're giving away** every time they open a browser.
 
+## ⚠️ About the Security Grade (Experimental)
+
+Privacy Check’s **A–F Security Grade is a heuristic** — it’s meant to teach, not to “certify” privacy.
+
+A few important notes:
+
+- **The grade is intentionally weighted toward actionable risks**, like:
+  - WebRTC exposure (local IP leaks)
+  - Tracker blocking (ad blockers)
+  - Permission states (camera/mic/location already granted)
+- **Some checks are “advisory”** (useful context, but not meant to tank your score), like:
+  - Global Privacy Control (GPC) support
+  - Cookie availability (varies by browser / incognito mode)
+  - Browser fingerprint uniqueness (that’s shown separately as “Footprint Bits”)
+
+### Why letter grades can jump (A → C)
+Some privacy signals are close to **binary**:
+- Ad blocker: *Active vs Missing*
+- WebRTC: *Protected vs Leaking*
+- Permissions: *Denied vs Granted*
+
+So a single “big” change can move the grade more than you might expect. This is normal — it’s a starting point for learning what matters most.
+
+### VPN testing is an inference
+Browsers do not provide a true “VPN on/off” signal. Privacy Check estimates VPN impact by comparing your **public IP across two checks** (baseline vs latest). This is useful for learning, but it’s not a guarantee.
+
+### Bottom line
+Use this tool as a **privacy awareness dashboard**:
+- If your grade drops, it usually points to something you can fix.
+- If your grade stays high, it doesn’t mean you’re anonymous — your device can still be unique (see Footprint Bits).
+
+If you spot false positives/negatives in your environment, please open an issue — this project is evolving.
+
+
 ---
 
 ## The “Dual-Tier” Logic
