@@ -202,7 +202,7 @@ body, html { width: 100%; height: 100%; margin:0; background: var(--sui-bg-prima
 <script>
 /* Privacy Check — v3.8.1 (QA + Stable Rescan + VPN Test) */
 
-const APP_VERSION = 'v3.8.3';
+const APP_VERSION = 'v3.8.4';
 document.getElementById('app-version').innerText = APP_VERSION;
 
 // Track actionable issues (High score = Bad)
@@ -457,10 +457,10 @@ const App = {
     let grade = 'A';
     let pct = 100;
 
-    if (risks >= 4) { grade = 'F'; pct = 25; }
+    if (risks >= 3.5) { grade = 'F'; pct = 25; }
     else if (risks >= 2.5) { grade = 'D'; pct = 50; }
-    else if (risks >= 1) { grade = 'C'; pct = 70; }
-    else if (risks > 0) { grade = 'B'; pct = 90; }
+    else if (risks >= 1.5) { grade = 'C'; pct = 70; }
+    else if (risks >= 0.5) { grade = 'B'; pct = 90; }
 
     if (uEl) uEl.innerText = (FootprintMap.size * 1.5).toFixed(0);
 
@@ -676,12 +676,22 @@ const App = {
       ? (VPNState.baseline !== VPNState.latest ? 'CHANGED (VPN likely ON)' : 'UNCHANGED')
       : 'NOT TESTED';
 
-    // Informational only — does not affect grade.
+    // Low-weight grade signal:
+    // - CHANGED  => VPN likely ON (0.00 risk)
+    // - UNCHANGED=> VPN not verified / likely OFF (0.25 risk)
+    // - NOT TESTED => neutral (0.00 risk)
+    const vpnRisk = status.startsWith('CHANGED') ? 0 : (status === 'UNCHANGED' ? 0.25 : 0);
+    this.RiskMap.set('VPN', vpnRisk);
+
     this.addItem(block, 'info', 'VPN Test', status, 'Compares your public IP across two checks.', 'Click VPN Test once with VPN OFF, then again with VPN ON.');
     this.addItem(block, 'info', 'Baseline Public IP', baseline, '', '');
     this.addItem(block, 'info', 'Latest Public IP', latest, '', '');
     this.addItem(block, 'info', 'Checked', at, '', '');
     this.addItem(block, 'info', 'Source', VPNState.source || '—', '', '');
+
+    // Refresh grade + guidance immediately (VPN test is interactive).
+    this.updateGuide();
+    this.updateGrade();
 
     p.prepend(block);
   },
