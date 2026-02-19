@@ -1,73 +1,94 @@
+/* Privacy Check — Service Worker (v3.8.1)
+   Goal: Fast offline + controlled update toast (user clicks Update).
+*/
 const CACHE_NAME = 'privacy-check-v3.8.1';
-
-const CORE_ASSETS = [
+const ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/icon-192.png',
-  '/icon-512.png'
+  '/icon-512.png',
+  'https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@latest/dist/sui-tokens.min.css',
+  'https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@latest/dist/sui-components.min.css',
+  'https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@latest/dist/sui.min.js'
 ];
 
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((c) => c.addAll(CORE_ASSETS))
+// Install: cache core assets
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then((keys) => Promise.all(
-      keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null))
-    )).then(() => self.clients.claim())
+// Activate: delete old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null)))
+    ).then(() => self.clients.claim())
   );
 });
 
-async function cacheFirst(req) {
-  const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(req);
-  if (cached) return cached;
-
-  const fresh = await fetch(req);
-  if (fresh && fresh.ok) cache.put(req, fresh.clone());
-  return fresh;
+// Helpers
+function isHTMLRequest(req) {
+  return req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
+}
+function isDynamic(reqUrl) {
+  // Never cache Netlify Functions, API endpoints, or anything that should always be fresh.
+  // (VPN/Public-IP checks must not be cached.)
+  return (
+    reqUrl.pathname.startsWith('/.netlify/functions/') ||
+    reqUrl.pathname.startsWith('/api/')
+  );
 }
 
-async function networkFirst(req) {
-  const cache = await caches.open(CACHE_NAME);
-  try {
-    const fresh = await fetch(req);
-    if (fresh && fresh.ok) cache.put('/index.html', fresh.clone());
-    return fresh;
-  } catch (e) {
-    const cached = await cache.match('/index.html');
-    if (cached) return cached;
-    throw e;
-  }
-}
+// Fetch strategy:
+// - HTML navigations: network-first (fallback cache)
+// - Static assets: cache-first
+// - CDN assets: cache-first
+// - Dynamic endpoints: network-only (no cache)
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
 
-self.addEventListener('fetch', (e) => {
-  const url = new URL(e.request.url);
+  const url = new URL(req.url);
 
-  // Never cache dynamic endpoints
-  if (url.pathname.startsWith('/.netlify/functions/')) {
-    e.respondWith(fetch(e.request, { cache: 'no-store' }));
-    return;
-  }
-  if (url.hostname.includes('api.ipify.org') || url.hostname.includes('api64.ipify.org')) {
-    e.respondWith(fetch(e.request, { cache: 'no-store' }));
+  // Only handle same-origin + jsdelivr (keeps scope tight)
+  const isSameOrigin = url.origin === self.location.origin;
+  const isJsDelivr = url.hostname.includes('cdn.jsdelivr.net');
+
+  if (!isSameOrigin && !isJsDelivr) return;
+
+  // Dynamic: never cache
+  if (isSameOrigin && isDynamic(url)) {
+    event.respondWith(fetch(req, { cache: 'no-store' }));
     return;
   }
 
-  if (e.request.mode === 'navigate') {
-    e.respondWith(networkFirst(e.request));
+  // HTML: network-first
+  if (isSameOrigin && isHTMLRequest(req)) {
+    event.respondWith(
+      fetch(req).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+        return res;
+      }).catch(() => caches.match(req).then((c) => c || caches.match('/index.html')))
+    );
     return;
   }
 
-  if (url.origin === self.location.origin || url.hostname.includes('cdn.jsdelivr.net')) {
-    e.respondWith(cacheFirst(e.request));
-  }
+  // Assets: cache-first (fast)
+  event.respondWith(
+    caches.match(req).then((cached) => cached || fetch(req).then((res) => {
+      // keep cache warm
+      const copy = res.clone();
+      caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+      return res;
+    }))
+  );
 });
 
+// Message listener: user clicked Update
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });

@@ -4,7 +4,7 @@
 [functions]
   directory = "netlify/functions"
 
-# 1) Logic files: never cache
+# Logic files: never cache
 [[headers]]
   for = "/sw.js"
   [headers.values]
@@ -20,12 +20,13 @@
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
+# Dynamic endpoints (Netlify Functions): never cache
 [[headers]]
   for = "/.netlify/functions/*"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
-# 2) Asset files: cache forever
+# Asset files: cache long
 [[headers]]
   for = "/*.png"
   [headers.values]
