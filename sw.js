@@ -1,7 +1,7 @@
-/* Privacy Check — Service Worker (v3.8.1)
+/* Privacy Check — Service Worker (v3.8.2)
    Goal: Fast offline + controlled update toast (user clicks Update).
 */
-const CACHE_NAME = 'privacy-check-v3.8.1';
+const CACHE_NAME = 'privacy-check-v3.8.2';
 const ASSETS = [
   '/',
   '/index.html',
