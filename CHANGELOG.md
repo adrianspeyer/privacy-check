@@ -1,6 +1,6 @@
 # Changelog
 
-## v3.8.1
+## v3.8.3
 - Rescan stability
   - Rescan is now async-safe (prevents races and “blank panel” moments)
   - Adds a visible “Scanning…” state
@@ -14,5 +14,5 @@
   - Network-first for HTML
   - Never caches Netlify Functions or API endpoints
 
-## v3.5
+## v3.8.3
 - Initial public release
