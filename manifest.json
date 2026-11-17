@@ -1,12 +1,14 @@
 {
-  "name": "Privacy Check — What Your Phone Reveals",
+  "name": "Privacy Check",
   "short_name": "Privacy Check",
-  "description": "See exactly what every website can learn about you — a free privacy awareness tool.",
-  "start_url": "/index.html",
+  "description": "Explore what your browser reveals and learn how to adjust your privacy settings.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#F9FBFD",
-  "theme_color": "#3B82F6",
-  "orientation": "portrait-primary",
+  "background_color": "#f4f7f5",
+  "theme_color": "#08776b",
+  "lang": "en",
   "categories": [
     "education",
     "utilities",
@@ -17,13 +19,13 @@
       "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

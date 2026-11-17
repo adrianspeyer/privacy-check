@@ -1,94 +1,67 @@
-/* Privacy Check — Service Worker (v3.8.1)
-   Goal: Fast offline + controlled update toast (user clicks Update).
-*/
-const CACHE_NAME = 'privacy-check-v3.8.5';
+/* Privacy Check v4.0.0 — one local, versioned app shell. */
+const VERSION = 'v4.0.0';
+const SCOPE = new URL(self.registration.scope);
+const CACHE_PREFIX = `privacy-check:${SCOPE.pathname}:`;
+const CACHE_NAME = `${CACHE_PREFIX}${VERSION}`;
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
-  'https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@latest/dist/sui-tokens.min.css',
-  'https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@latest/dist/sui-components.min.css',
-  'https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@latest/dist/sui.min.js'
-];
+  'index.html',
+  'styles.css',
+  'privacy-core.js',
+  'app.js',
+  'manifest.json',
+  'icon-192.png',
+  'icon-512.png'
+].map(path => new URL(path, SCOPE).href);
+const SHELL_URL = new URL('index.html', SCOPE).href;
+const ASSET_URLS = new Set(ASSETS);
 
-// Install: cache core assets
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
+self.addEventListener('install', event => {
+  // Installation succeeds only when every asset in this release is available.
+  // The old worker keeps serving its complete release until Update is chosen.
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(
+    ASSETS.map(url => new Request(url, { cache: 'reload' }))
+  )));
 });
 
-// Activate: delete old caches
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null)))
-    ).then(() => self.clients.claim())
-  );
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(key =>
+      (key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME) ||
+      // Migrate the earlier root installation without touching other apps.
+      (SCOPE.pathname === '/' && /^privacy-check-v\d/.test(key))
+    ).map(key => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
 
-// Helpers
-function isHTMLRequest(req) {
-  return req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
-}
-function isDynamic(reqUrl) {
-  // Never cache Netlify Functions, API endpoints, or anything that should always be fresh.
-  // (VPN/Public-IP checks must not be cached.)
-  return (
-    reqUrl.pathname.startsWith('/.netlify/functions/') ||
-    reqUrl.pathname.startsWith('/api/')
-  );
-}
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
+  if (url.origin !== SCOPE.origin) return;
 
-// Fetch strategy:
-// - HTML navigations: network-first (fallback cache)
-// - Static assets: cache-first
-// - CDN assets: cache-first
-// - Dynamic endpoints: network-only (no cache)
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
+  // Never intercept or cache API requests, IP results, unrelated pages, or
+  // external resources. The app does not need a third-party offline cache.
+  const isShell = request.mode === 'navigate' &&
+    (url.pathname === SCOPE.pathname || url.pathname === new URL(SHELL_URL).pathname);
+  const isAsset = !url.search && ASSET_URLS.has(url.href);
+  if (!isShell && !isAsset) return;
 
-  const url = new URL(req.url);
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const key = isShell ? SHELL_URL : url.href;
+    const cached = await cache.match(key);
+    if (cached) return cached;
 
-  // Only handle same-origin + jsdelivr (keeps scope tight)
-  const isSameOrigin = url.origin === self.location.origin;
-  const isJsDelivr = url.hostname.includes('cdn.jsdelivr.net');
+    // Storage can be evicted. Fail over to the network without storing errors,
+    // redirects or arbitrary responses under a trusted app-shell cache key.
+    return fetch(request);
+  })());
+});
 
-  if (!isSameOrigin && !isJsDelivr) return;
-
-  // Dynamic: never cache
-  if (isSameOrigin && isDynamic(url)) {
-    event.respondWith(fetch(req, { cache: 'no-store' }));
-    return;
+self.addEventListener('message', event => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    event.waitUntil(self.skipWaiting());
   }
-
-  // HTML: network-first
-  if (isSameOrigin && isHTMLRequest(req)) {
-    event.respondWith(
-      fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-        return res;
-      }).catch(() => caches.match(req).then((c) => c || caches.match('/index.html')))
-    );
-    return;
-  }
-
-  // Assets: cache-first (fast)
-  event.respondWith(
-    caches.match(req).then((cached) => cached || fetch(req).then((res) => {
-      // keep cache warm
-      const copy = res.clone();
-      caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-      return res;
-    }))
-  );
-});
-
-// Message listener: user clicked Update
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });

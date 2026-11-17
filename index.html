@@ -1,1006 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#3B82F6">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Privacy Check">
-<meta name="description" content="Audit your digital footprint. See what your phone reveals.">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="icon" href="data:,">
-
-<title>Privacy Check</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@latest/dist/sui-tokens.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@latest/dist/sui-components.min.css">
-<script src="https://cdn.jsdelivr.net/gh/adrianspeyer/speyer-ui@latest/dist/sui.min.js" defer></script>
-
-<style>
-/* ── PWA Physics ── */
-body, html { width: 100%; height: 100%; margin:0; background: var(--sui-bg-primary); -webkit-user-select: none; user-select: none; touch-action: pan-y; }
-.app-scroller { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: env(safe-area-inset-bottom); overscroll-behavior-y: none; }
-.app-wrap { max-width: 640px; margin: 0 auto; padding: 0 var(--sui-space-3) 160px; }
-
-/* ── Sticky Action Bar ── */
-.action-bar { position: sticky; top: 0; z-index: 999; display: flex; justify-content: space-between; align-items: center; gap: 12px;
-  padding: 12px var(--sui-space-3);
-  margin: 0 -16px;
-  padding-left: calc(var(--sui-space-3) + env(safe-area-inset-left));
-  padding-right: calc(var(--sui-space-3) + env(safe-area-inset-right));
-  padding-top: calc(12px + env(safe-area-inset-top));
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--sui-border);
-}
-[data-theme="dark"] .action-bar { background: rgba(11, 15, 26, 0.95); }
-
-.action-left { display:flex; align-items:center; gap: 10px; }
-
-.btn-pill { border: none; border-radius: 24px; padding: 8px 16px; font-size: 14px; font-weight: 700;
-  display: inline-flex; align-items: center; gap: 8px; box-shadow: var(--sui-shadow-sm);
-  cursor: pointer;
-}
-.btn-pill svg { width: 18px; height: 18px; }
-.btn-pill:active { transform: scale(0.98); }
-
-.btn-rescan { background: var(--sui-blue-primary); color: white; }
-.btn-rescan[disabled] { opacity: 0.6; cursor: default; transform:none; }
-
-.btn-vpn { background: var(--sui-bg-elevated); color: var(--sui-text-primary); border: 1px solid var(--sui-border); box-shadow: none; }
-[data-theme="dark"] .btn-vpn { background: rgba(255,255,255,0.06); }
-
-.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.45); border-top-color: rgba(255,255,255,0.95); animation: spin 0.8s linear infinite; }
-.btn-vpn .spinner { border-color: rgba(0,0,0,0.18); border-top-color: rgba(0,0,0,0.55); }
-[data-theme="dark"] .btn-vpn .spinner { border-color: rgba(255,255,255,0.18); border-top-color: rgba(255,255,255,0.55); }
-@keyframes spin { to { transform: rotate(360deg);} }
-
-/* ── UI Components ── */
-.hero { text-align: center; padding: var(--sui-space-5) var(--sui-space-3) 24px; }
-.hero-icon { width: 64px; height: 64px; margin: 0 auto 16px; border-radius: var(--sui-radius-lg); background: var(--sui-blue-soft); border: 1px solid var(--sui-border); display: flex; align-items: center; justify-content: center; font-size: 30px; }
-
-/* Report Card */
-.rc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
-.rc-col { text-align: center; padding: 16px; background: var(--sui-bg-elevated); border-radius: var(--sui-radius-lg); border: 1px solid var(--sui-border); }
-.rc-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--sui-text-muted); letter-spacing: 0.05em; margin-bottom: 8px; }
-.rc-val-big { font-family: var(--sui-font-mono); font-size: 42px; font-weight: 700; line-height: 1; }
-.rc-sub { font-size: 12px; color: var(--sui-text-secondary); margin-top: 6px; font-weight: 500; }
-
-/* Headers */
-.sec-header { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--sui-text-muted); margin: 32px 0 12px; padding-left: 4px; display: flex; align-items: center; gap: 8px; }
-.sec-line { height: 1px; background: var(--sui-border); flex: 1; }
-
-/* Data Items */
-.d-item { background: var(--sui-bg-elevated); border: 1px solid var(--sui-border); border-radius: var(--sui-radius-md); margin-bottom: 16px; overflow: hidden; }
-.d-row { display: flex; align-items: flex-start; padding: 16px; gap: 16px; }
-.d-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
-.d-dot-h { background: var(--sui-error); }
-.d-dot-m { background: var(--sui-warning); }
-.d-dot-s { background: var(--sui-success); }
-.d-dot-l { background: var(--sui-info); opacity: 0.5; }
-.d-key { font-size: 14px; color: var(--sui-text-secondary); flex-shrink: 0; min-width: 110px; font-weight: 600; }
-.d-val { font-family: var(--sui-font-mono); font-size: 14px; color: var(--sui-blue-active); text-align: right; flex: 1; overflow-wrap: anywhere; line-height: 1.6; }
-.d-why { padding: 12px 16px; background: rgba(0,0,0,0.03); font-size: 13px; color: var(--sui-text-primary); border-top: 1px solid var(--sui-border); line-height: 1.5; }
-[data-theme="dark"] .d-why { background: rgba(255,255,255,0.04); }
-.d-why-label { font-weight: 700; font-size: 11px; text-transform: uppercase; color: var(--sui-text-muted); display: block; margin-bottom: 4px; letter-spacing: 0.05em; }
-
-/* Mobile Stack */
-@media (max-width: 480px) {
-  .d-row { flex-direction: column; gap: 6px; }
-  .d-key { min-width: auto; margin-bottom: 2px; color: var(--sui-text-muted); font-size: 12px; text-transform: uppercase; letter-spacing:0.05em;}
-  .d-val { text-align: left; width: 100%; font-size: 15px; }
-  .d-dot { display: none; }
-  .d-item { border-left: 4px solid transparent; }
-  .d-item.risk-h { border-left-color: var(--sui-error); }
-  .d-item.risk-m { border-left-color: var(--sui-warning); }
-  .d-item.risk-s { border-left-color: var(--sui-success); }
-  .d-item.risk-l { border-left-color: var(--sui-border); }
-}
-
-.edu-box { background: var(--sui-blue-soft); border: 1px solid var(--sui-blue-focus); padding: 16px; border-radius: var(--sui-radius-md); margin-bottom: 16px; font-size: 14px; color: var(--sui-text-primary); line-height: 1.5; display: flex; gap: 12px; }
-.edu-icon { font-size: 20px; flex-shrink: 0; margin-top: 0; }
-.perm-btn { width: 100%; margin-bottom: 12px; justify-content: flex-start; border-style: dashed; padding: 14px; height: auto; }
-.perm-btn.granted { border-style: solid; border-color: var(--sui-success); background: var(--sui-success-soft); color: var(--sui-success-strong); }
-
-/* Behavior demo */
-.touch-demo { position: relative; height: 180px; border: 1px dashed var(--sui-border); border-radius: var(--sui-radius-lg); background: var(--sui-bg-elevated); overflow: hidden; }
-.touch-trail { position: absolute; width: 10px; height: 10px; border-radius: 50%; transform: translate(-50%, -50%); opacity: 0.85; }
-
-/* Toast */
-.sui-toast-container { z-index: 2000 !important; top: 80px !important; }
-.update-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); z-index: 2000; transition: transform 0.3s ease-out; width: 90%; max-width: 420px; }
-.update-toast.visible { transform: translateX(-50%) translateY(0); }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f7f5">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Understand what your browser reveals. Explore local privacy checks, review permissions, and learn how browser fingerprinting works.">
+  <meta name="apple-mobile-web-app-title" content="Privacy Check">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="privacy-core.js" defer></script>
+  <script src="app.js" defer></script>
+  <title>Privacy Check — Know what your browser reveals</title>
 </head>
 <body>
-
-<div id="update-toast" class="sui-toast sui-toast-info update-toast">
-  <div class="sui-toast-icon">✨</div>
-  <div class="sui-toast-content">
-    <div class="sui-toast-title">Update Available</div>
-    <div class="sui-toast-message">New version ready.</div>
-  </div>
-  <button class="sui-btn sui-btn-sm sui-btn-primary" id="btn-update">Update</button>
-</div>
-
-<div class="app-scroller">
-  <div class="action-bar">
-    <div class="action-left">
-      <button class="btn-pill btn-rescan" id="global-rescan" type="button" aria-label="Rescan privacy checks">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-        </svg>
-        <span class="btn-text">Rescan</span>
-      </button>
-
-      <button class="btn-pill btn-vpn" id="vpn-test" type="button" aria-label="Run VPN public IP test">
-        <span>🧪 VPN Test</span>
-      </button>
-    </div>
-
-    <label class="sui-toggle-label" style="margin:0">
-      <span style="font-size:12px;color:var(--sui-text-muted);">☀️/🌙</span>
-      <span class="sui-toggle">
-        <input type="checkbox" id="theme-toggle">
-        <span class="sui-toggle-track"></span>
-      </span>
-    </label>
-  </div>
-
-  <div class="app-wrap">
-    <div class="hero">
-      <div class="hero-icon">🛡️</div>
-      <h1>Privacy Check</h1>
-      <p>Audit your digital footprint. Adjust settings. Rescan to verify your privacy.</p>
-    </div>
-
-    <div class="sui-card sui-mb-4" id="report">
-      <div class="sui-text-center"><span class="sui-badge sui-badge-neutral sui-badge-sm">LIVE STATUS</span></div>
-      <div class="rc-grid">
-        <div class="rc-col">
-          <div class="rc-label">Security Grade</div>
-          <div class="rc-val-big" id="o-grade" style="color:var(--sui-text-muted)">-</div>
-          <div class="rc-sub" id="o-label">Checking...</div>
-        </div>
-        <div class="rc-col">
-          <div class="rc-label">Footprint Bits</div>
-          <div class="rc-val-big" id="s-uniq" style="color:var(--sui-blue-primary)">-</div>
-          <div class="rc-sub">Uniqueness</div>
-        </div>
-      </div>
-
-      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--sui-border)">
-        <div class="sui-progress sui-progress-lg" id="score-container">
-          <div class="sui-progress-bar" id="score-bar" style="width:0%"></div>
-        </div>
-      </div>
-    </div>
-
-    <div id="sec-guide"></div>
-
-    <div class="sec-header">⚠️ Actionable Security<div class="sec-line"></div></div>
-    <div id="sec-actionable"></div>
-
-    <div class="sec-header">👣 Device Footprint<div class="sec-line"></div></div>
-    <div id="sec-footprint"></div>
-
-    <div class="sui-footer">
-      <p>Data stays on device. Built with Speyer UI.</p>
-      <div class="sui-mt-2"><span class="sui-badge sui-badge-neutral sui-badge-sm sui-badge-outline" id="app-version">v0.0</span></div>
-    </div>
-  </div>
-</div>
-
-<canvas id="fp-canvas" width="200" height="50" style="display:none"></canvas>
-
-<script>
-/* Privacy Check — v3.8.1 (QA + Stable Rescan + VPN Test) */
-
-const APP_VERSION = 'v3.8.5';
-document.getElementById('app-version').innerText = APP_VERSION;
-
-// Track actionable issues (High score = Bad)
-const RiskMap = new Map();
-const FootprintMap = new Map();
-
-// Remember "manual permission" tests across rescans
-const TestResults = {
-  contacts: null,
-  files: null,
-  gyro: null,
-  media: null
-};
-
-// Browser state
-const State = {
-  isBrave: false,
-  isFirefox: false,
-  hasAdBlock: null,
-  webRTCSafe: null
-};
-
-// VPN test state (public IP comparison) — stored locally
-const VPN_KEY = 'privacycheck_vpn_state_v1';
-const VPNState = (() => {
-  try { return JSON.parse(localStorage.getItem(VPN_KEY) || 'null') || { baseline:null, latest:null, at:null, source:null }; }
-  catch(e){ return { baseline:null, latest:null, at:null, source:null }; }
-})();
-
-function saveVPNState() {
-  try { localStorage.setItem(VPN_KEY, JSON.stringify(VPNState)); } catch(e){}
-}
-
-function nowStamp() {
-  try { return new Date().toISOString(); } catch(e){ return ''; }
-}
-
-// Simple scan token so async calls don't "race" and overwrite newer results
-let scanToken = 0;
-
-// UI busy states
-const UIState = { rescanBusy:false, vpnBusy:false };
-const rescanBtn = document.getElementById('global-rescan');
-const vpnBtn = document.getElementById('vpn-test');
-
-const App = {
-  layout: {
-    guide: ['tips'],
-    actionable: ['prot', 'net', 'api', 'sen', 'priv'],
-    footprint: ['id', 'hw', 'fp', 'beh', 'font', 'med', 'bat']
-  },
-
-  resetUI() {
-    // Clear sections to avoid duplicates if init() is ever called again.
-    document.getElementById('sec-guide').innerHTML = '';
-    document.getElementById('sec-actionable').innerHTML = '';
-    document.getElementById('sec-footprint').innerHTML = '';
-
-    // Reset maps on full init (not on rescan). This keeps scoring stable.
-    RiskMap.clear();
-    FootprintMap.clear();
-  },
-
-  setBusy(which, busy) {
-    if (which === 'rescan') {
-      UIState.rescanBusy = busy;
-      if (rescanBtn) {
-        rescanBtn.disabled = busy;
-        const label = rescanBtn.querySelector('.btn-text');
-        if (busy) {
-          // add spinner if missing
-          if (!rescanBtn.querySelector('.spinner')) {
-            const sp = document.createElement('span');
-            sp.className = 'spinner';
-            rescanBtn.insertBefore(sp, label);
-          }
-          if (label) label.textContent = 'Rescanning…';
-        } else {
-          const sp = rescanBtn.querySelector('.spinner');
-          if (sp) sp.remove();
-          if (label) label.textContent = 'Rescan';
-        }
-      }
-    }
-
-    if (which === 'vpn') {
-      UIState.vpnBusy = busy;
-      if (vpnBtn) {
-        vpnBtn.disabled = busy;
-        if (busy) {
-          vpnBtn.innerHTML = '<span class="spinner"></span><span>VPN Test…</span>';
-        } else {
-          vpnBtn.innerHTML = '<span>🧪 VPN Test</span>';
-        }
-      }
-    }
-  },
-
-  mkSec(id, icon, title, sub, eduText) {
-    let containerId = 'sec-footprint';
-    if (App.layout.actionable.includes(id)) containerId = 'sec-actionable';
-    if (App.layout.guide.includes(id)) containerId = 'sec-guide';
-
-    const container = document.getElementById(containerId);
-    if (!container) return document.createElement('div');
-
-    const wrap = document.createElement('div');
-    wrap.className = 'sui-accordion sui-mb-4';
-
-    const trigger = document.createElement('button');
-    trigger.className = 'sui-accordion-trigger';
-    trigger.setAttribute('aria-expanded', 'false');
-    trigger.style.padding = '20px';
-    trigger.innerHTML = `
-      <span style="display:flex;align-items:center;gap:var(--sui-space-3);flex:1">
-        <span style="font-size:24px">${icon}</span>
-        <span>
-          <span style="display:block;font-weight:700;line-height:1.2;font-size:16px">${title}</span>
-          <span style="display:block;font-size:13px;color:var(--sui-text-muted);font-weight:400;margin-top:4px">${sub}</span>
+  <a class="skip-link" href="#main-content">Skip to results</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="./" aria-label="Privacy Check home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.4c0 4.2 2.7 7.7 7.5 9.6 4.8-1.9 7.5-5.4 7.5-9.6V6L12 3Z"/><path d="m8.5 11.8 2.3 2.3 4.7-4.7"/></svg>
         </span>
-      </span>
-      <svg class="sui-accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-    `;
-
-    const panel = document.createElement('div');
-    panel.className = 'sui-accordion-panel';
-    panel.hidden = true;
-    panel.id = `panel-${id}`;
-    panel.style.paddingTop = '12px';
-
-    if (eduText) {
-      const edu = document.createElement('div');
-      edu.className = 'edu-box';
-      edu.innerHTML = `<div class="edu-icon">ℹ️</div><div>${eduText}</div>`;
-      panel.appendChild(edu);
-    }
-
-    trigger.onclick = () => {
-      const exp = trigger.getAttribute('aria-expanded') === 'true';
-      trigger.setAttribute('aria-expanded', String(!exp));
-      panel.hidden = exp;
-    };
-
-    wrap.appendChild(trigger);
-    wrap.appendChild(panel);
-    container.appendChild(wrap);
-    return panel;
-  },
-
-  clearRisks(keys) {
-    keys.forEach(k => { RiskMap.delete(k); FootprintMap.delete(k); });
-    if (typeof this.scheduleGradeUpdate === 'function') this.scheduleGradeUpdate();
-  },
-
-  _gradeRAF: null,
-  scheduleGradeUpdate() {
-    if (this._gradeRAF) return;
-    this._gradeRAF = requestAnimationFrame(() => {
-      this._gradeRAF = null;
-      this.updateGrade();
-    });
-  },
-
-  addItem(panel, category, key, val, why, whyTech, isAlert, riskOverride) {
-    if (!panel) return;
-
-    let dotClass = 'd-dot-l';
-    let riskValue = 0;
-
-    if (category === 'risk') {
-      // Optional override lets us treat "recommended" items (like GPC) as low-impact without string parsing.
-      if (typeof riskOverride === 'number') {
-        riskValue = riskOverride;
-        if (riskValue >= 1) dotClass = 'd-dot-h';
-        else if (riskValue >= 0.5) dotClass = 'd-dot-m';
-        else if (riskValue > 0) dotClass = 'd-dot-l';
-        else dotClass = 'd-dot-s';
-      } else if (isAlert) {
-        dotClass = 'd-dot-h'; riskValue = 1;
-      } else if (val && (String(val).includes('Exposed') || String(val).includes('Missing') || String(val).includes('High Risk'))) {
-        dotClass = 'd-dot-m'; riskValue = 0.5;
-      } else {
-        dotClass = 'd-dot-s'; riskValue = 0;
-      }
-
-      RiskMap.set(key, riskValue);
-      this.scheduleGradeUpdate();
-    } else {
-      FootprintMap.set(key, 1);
-      dotClass = 'd-dot-l';
-    }
-
-    const el = document.createElement('div');
-    el.className = `d-item risk-${dotClass.replace('d-dot-', '')}`;
-
-    const whyBlock = (why || whyTech)
-      ? `<div class="d-why"><span class="d-why-label">${category === 'risk' ? '⚠️ Analysis' : '👣 Fingerprint Data'}</span><div>${why ? `<b>${why}</b> ` : ''}${whyTech || ''}</div></div>`
-      : '';
-
-    el.innerHTML = `
-      <div class="d-row">
-        <div class="d-dot ${dotClass}"></div>
-        <span class="d-key">${key}</span>
-        <span class="d-val">${val || '<span>unavailable</span>'}</span>
+        <span>Privacy<span class="brand-light"> Check</span></span>
+      </a>
+      <div class="header-actions">
+        <button class="button button-icon" id="theme-toggle" type="button" aria-label="Toggle dark theme" aria-pressed="false" title="Toggle light and dark theme">
+          <svg class="theme-moon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13.1A9 9 0 0 1 10.9 3.1a9 9 0 1 0 10 10Z"/></svg>
+          <svg class="theme-sun" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+        <button class="button button-primary" id="global-rescan" type="button">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.6-1.5L20 8M4 16l2.3 2.5A7 7 0 0 0 17.9 17"/></svg>
+          <span class="btn-text">Rescan</span>
+        </button>
       </div>
-      ${whyBlock}
-    `;
-    panel.appendChild(el);
-  },
-
-  addBtn(panel, id, label, icon, onClick) {
-    if (!panel) return;
-
-    const resultState = TestResults[id];
-
-    if (resultState === 'blocked') {
-      this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'You successfully denied access.', '', false);
-      return;
-    }
-    if (resultState === 'exposed') {
-      this.addItem(panel, 'risk', label, 'Exposed', 'Access previously granted.', '', true);
-      const reset = document.createElement('button');
-      reset.className = 'sui-btn sui-btn-xs sui-btn-ghost';
-      reset.innerText = 'Retest';
-      reset.onclick = () => { TestResults[id] = null; this.rescan(); };
-      panel.appendChild(reset);
-      return;
-    }
-
-    const btn = document.createElement('button');
-    btn.className = 'sui-btn sui-btn-ghost perm-btn';
-    btn.innerHTML = `<span style="margin-right:8px">${icon}</span> ${label}`;
-    btn.onclick = async () => {
-      try {
-        btn.classList.add('sui-btn-loading');
-        await onClick(btn, panel);
-        TestResults[id] = 'exposed';
-        btn.classList.remove('sui-btn-loading');
-        btn.classList.add('granted');
-        this.updateGrade();
-      } catch (e) {
-        btn.classList.remove('sui-btn-loading');
-        TestResults[id] = 'blocked';
-        btn.remove();
-        this.addItem(panel, 'risk', label, 'Protected (Blocked)', 'Access denied.', '', false);
-        this.updateGrade();
-      }
-    };
-    panel.appendChild(btn);
-  },
-
-  updateGrade() {
-    const gEl = document.getElementById('o-grade');
-    const bEl = document.getElementById('score-bar');
-    const lEl = document.getElementById('o-label');
-    const uEl = document.getElementById('s-uniq');
-    if (!gEl || !bEl) return;
-
-    let totalRisk = 0;
-    RiskMap.forEach(v => totalRisk += v);
-
-    // Scoring model (v3.8.5): only a handful of high-signal checks affect the grade.
-    // Typical weights:
-    // - WebRTC leak: 2.0
-    // - Ad blocker missing: 1.0
-    // - VPN likely OFF (after user-tested): 0.5
-    // - GPC off (optional): 0.25
-    // NOTE: Browser brand + cookies do NOT affect grade (they remain educational).
-    const risks = totalRisk;
-
-    let grade = 'A';
-    let pct = 100;
-
-    // Strict thresholds avoid "borderline" setups being penalized.
-    if (risks > 3.0) { grade = 'F'; pct = 25; }
-    else if (risks > 2.0) { grade = 'D'; pct = 45; }
-    else if (risks > 1.0) { grade = 'C'; pct = 65; }
-    else if (risks > 0.5) { grade = 'B'; pct = 85; }
-
-    if (uEl) uEl.innerText = (FootprintMap.size * 1.5).toFixed(0);
-
-    const color = grade === 'A' ? 'var(--sui-success)' : grade === 'F' ? 'var(--sui-error)' : 'var(--sui-warning)';
-    gEl.innerText = grade;
-    gEl.style.color = color;
-    bEl.style.width = pct + '%';
-    bEl.style.backgroundColor = color;
-
-    if (lEl) lEl.innerText = grade === 'A' ? 'Excellent' : grade === 'B' ? 'Good' : grade === 'C' ? 'Moderate' : grade === 'D' ? 'High Risk' : 'Critical';
-
-    this.updateGuide();
-  },
-
-  updateGuide() {
-    const panel = document.getElementById('panel-tips');
-    if (!panel) return;
-
-    const tips = [];
-
-    const ua = navigator.userAgent || '';
-    State.isBrave = navigator.brave !== undefined;
-    State.isFirefox = ua.toLowerCase().includes('firefox');
-
-    if (State.isBrave || State.isFirefox) tips.push({ s: 'success', t: 'Browser: Safer Choice', d: 'Privacy-focused browser detected.' });
-    else tips.push({ s: 'warning', t: 'Browser: Standard Tracking', d: 'Consider <b>Brave</b> or <b>Firefox</b> for stronger default protections.' });
-
-    if (State.hasAdBlock === true) tips.push({ s: 'success', t: 'Ad Blocking: Active', d: 'Trackers are more likely to be blocked.' });
-    else if (State.hasAdBlock === false) tips.push({ s: 'error', t: 'Ad Blocking: Missing', d: 'Install a blocker like <b>uBlock Origin</b> to reduce invisible tracking.' });
-    else tips.push({ s: 'neutral', t: 'Ad Blocking: Unknown', d: 'Could not reliably detect ad blocking in this environment.' });
-
-    const gpc = navigator.globalPrivacyControl;
-    if (gpc === true) tips.push({ s: 'success', t: 'GPC: On', d: 'Your browser is signaling Global Privacy Control.' });
-    else tips.push({ s: 'neutral', t: 'GPC: Optional', d: 'Global Privacy Control is off or not supported. Recommended where available.' });
-
-    if (State.webRTCSafe === true) tips.push({ s: 'success', t: 'WebRTC: Safe', d: 'No local IP candidate observed.' });
-    else if (State.webRTCSafe === false) tips.push({ s: 'warning', t: 'WebRTC: Attention', d: 'A local IP candidate was observed via WebRTC.' });
-    else tips.push({ s: 'neutral', t: 'WebRTC: Unknown', d: 'WebRTC candidate testing is not available in this browser.' });
-
-    panel.innerHTML = '';
-    const edu = document.createElement('div');
-    edu.className = 'edu-box';
-    edu.innerHTML = `<div class="edu-icon">ℹ️</div><div>We analyzed your current settings. Here is your personalized to-do list.</div>`;
-    panel.appendChild(edu);
-
-    tips.forEach(t => {
-      const div = document.createElement('div');
-      div.className = `sui-alert sui-alert-${t.s} sui-mb-2`;
-      div.innerHTML = `<div class="sui-alert-content"><div class="sui-alert-title">${t.t}</div><div>${t.d}</div></div>`;
-      panel.appendChild(div);
-    });
-  },
-
-  // --- VPN public IP helper ---
-  async getPublicIP() {
-    const tryFetch = async (url) => {
-      const r = await fetch(url, { cache: 'no-store' });
-      if (!r.ok) throw new Error('bad_response');
-      const ct = (r.headers.get('content-type') || '').toLowerCase();
-      if (ct.includes('application/json')) {
-        const j = await r.json();
-        return j.ip || j.address || j.clientIp || j.ipv4 || null;
-      }
-      const t = (await r.text()).trim();
-      // If plain text IP:
-      if (/^(\d{1,3}\.){3}\d{1,3}$/.test(t)) return t;
-      return null;
-    };
-
-    // Prefer same-origin on Netlify if available:
-    try {
-      const ip = await tryFetch('/.netlify/functions/ip');
-      if (ip) return { ip, source: 'netlify-function' };
-    } catch (e) {}
-
-    // Fallback third-party (only used when user clicks VPN Test)
-    try {
-      const ip = await tryFetch('https://api.ipify.org?format=json');
-      if (ip) return { ip, source: 'ipify' };
-    } catch (e) {}
-
-    return { ip: null, source: 'unavailable' };
-  },
-
-  // --- SCANNERS ---
-  async rescan() {
-    if (UIState.rescanBusy) return;
-    this.setBusy('rescan', true);
-
-    const token = ++scanToken;
-    try {
-      if (typeof SUI !== 'undefined' && SUI.toast) SUI.toast.info('Rescanning', 'Updating analysis…');
-
-      const pNet = document.getElementById('panel-net');
-      const pProt = document.getElementById('panel-prot');
-      const pApi = document.getElementById('panel-api');
-      const pId = document.getElementById('panel-id');
-
-      // add a visible "Scanning…" row so it never feels broken
-      const markScanning = (p) => {
-        if (!p) return;
-        p.innerHTML = '';
-        this.addItem(p, 'info', 'Status', 'Scanning…', '', '');
-      };
-      markScanning(pNet);
-      markScanning(pProt);
-      markScanning(pApi);
-      markScanning(pId);
-
-      await Promise.all([
-        this.scanNetwork(pNet, token),
-        this.scanProtection(pProt, token),
-        this.scanPermissions(pApi, token),
-        Promise.resolve(this.scanIdentity(pId, token))
-      ]);
-    } finally {
-      this.updateGrade();
-      this.setBusy('rescan', false);
-    }
-  },
-
-  init() {
-    this.resetUI();
-
-    // Guide first
-    this.mkSec('tips', '🎓', 'Smart Action Plan', 'Based on your results', 'We analyzed your settings. Here is your personalized to-do list.');
-
-    this.mkSec('prot', '🛡️', 'Protection Check', 'Ad blocking, cookies, GPC', 'Your first line of defense.');
-    this.mkSec('api', '🚦', 'Permissions API', 'Previously granted permissions', 'Settings you have already configured.');
-    this.mkSec('net', '🌐', 'Network Exposure', 'Connection, WebRTC, Public IP test', 'What sites can infer about your network.');
-    this.mkSec('id', '📱', 'Identity', 'Browser, OS, Timezone', 'Software signals that contribute to fingerprinting.');
-
-    this.mkSec('hw', '🔧', 'Hardware Specs', 'Screen, CPU, RAM', 'Physical device properties.');
-    this.mkSec('fp', '👁', 'Invisible Fingerprints', 'Canvas hash', 'Advanced tracking techniques.');
-    this.mkSec('sen', '📡', 'Sensors & Motion', 'Gyroscope/Motion', 'Sensor data from your device.');
-    this.mkSec('priv', '🔐', 'Sensitive Access', 'Contacts, Files', 'Sensitive APIs. Manual check required.');
-    this.mkSec('beh', '👆', 'Behavior', 'Mouse & touch demo', 'Movement data can be tracked.');
-    this.mkSec('font', '🔤', 'Font Inventory', 'Installed Fonts', 'Your fonts contribute to uniqueness.');
-    this.mkSec('med', '📷', 'Media Devices', 'Camera/Mic', 'Hardware identifiers.');
-    this.mkSec('bat', '🔋', 'Battery Status', 'Level', 'Short-term tracking identifier.');
-
-    // initial scans
-    this.rescan();
-
-    // other scans (non-rescan critical)
-    this.scanHardware(document.getElementById('panel-hw'));
-    this.scanFP(document.getElementById('panel-fp'));
-    this.scanSensors(document.getElementById('panel-sen'));
-    this.scanSensitive(document.getElementById('panel-priv'));
-    this.scanBehavior(document.getElementById('panel-beh'));
-    this.scanFonts(document.getElementById('panel-font'));
-    this.scanMedia(document.getElementById('panel-med'));
-    this.scanBattery(document.getElementById('panel-bat'));
-
-    window.addEventListener('online', () => { if (typeof SUI !== 'undefined' && SUI.toast) SUI.toast.info('Network Changed', 'Consider a rescan.'); });
-
-    if (rescanBtn) rescanBtn.onclick = () => this.rescan();
-
-    if (vpnBtn) vpnBtn.onclick = async () => {
-      if (UIState.vpnBusy) return;
-      this.setBusy('vpn', true);
-      try {
-        const { ip, source } = await this.getPublicIP();
-        if (!ip) {
-          if (typeof SUI !== 'undefined' && SUI.toast) SUI.toast.warning('VPN Test', 'Public IP unavailable (offline or blocked).');
-          return;
-        }
-        VPNState.latest = ip;
-        VPNState.source = source;
-        VPNState.at = nowStamp();
-
-        if (!VPNState.baseline) {
-          VPNState.baseline = ip;
-          saveVPNState();
-          if (typeof SUI !== 'undefined' && SUI.toast) SUI.toast.success('VPN Test', 'Baseline saved. Turn VPN on, then test again.');
-        } else {
-          const changed = VPNState.baseline !== VPNState.latest;
-          saveVPNState();
-          if (typeof SUI !== 'undefined' && SUI.toast) {
-            if (changed) SUI.toast.success('VPN Test', 'Public IP changed — VPN likely active.');
-            else SUI.toast.info('VPN Test', 'Public IP did not change. VPN may be off (or IP unchanged).');
-          }
-        }
-
-        // Refresh only the VPN rows inside Network panel (no scroll jump)
-        this.renderVPNRows(document.getElementById('panel-net'));
-      } finally {
-        this.setBusy('vpn', false);
-      }
-    };
-
-    document.getElementById('theme-toggle').addEventListener('change', (e) => {
-      document.documentElement.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
-    });
-  },
-
-  renderVPNRows(p) {
-    if (!p) return;
-
-    // Find/replace by re-rendering just the top "VPN Test" block.
-    // We'll prepend a small block above network items.
-    const existing = p.querySelector('[data-vpn-block="1"]');
-    if (existing) existing.remove();
-
-    const block = document.createElement('div');
-    block.setAttribute('data-vpn-block', '1');
-
-    const baseline = VPNState.baseline || 'Not set';
-    const latest = VPNState.latest || 'Not checked';
-    const at = VPNState.at ? new Date(VPNState.at).toLocaleString() : '—';
-
-    const status = (VPNState.baseline && VPNState.latest)
-      ? (VPNState.baseline !== VPNState.latest ? 'CHANGED (VPN likely ON)' : 'UNCHANGED')
-      : 'NOT TESTED';
-
-    // Low-weight grade signal:
-    // - CHANGED  => VPN likely ON (0.00 risk)
-    // - UNCHANGED=> VPN not verified / likely OFF (0.25 risk)
-    // - NOT TESTED => neutral (0.00 risk)
-    const vpnRisk = status.startsWith('CHANGED') ? 0 : (status === 'UNCHANGED' ? 0.25 : 0);
-    RiskMap.set('VPN', vpnRisk);
-    this.scheduleGradeUpdate();
-
-    this.addItem(block, 'info', 'VPN Test', status, 'Compares your public IP across two checks.', 'Click VPN Test once with VPN OFF, then again with VPN ON.');
-    this.addItem(block, 'info', 'Baseline Public IP', baseline, '', '');
-    this.addItem(block, 'info', 'Latest Public IP', latest, '', '');
-    this.addItem(block, 'info', 'Checked', at, '', '');
-    this.addItem(block, 'info', 'Source', VPNState.source || '—', '', '');
-
-    // Refresh grade + guidance immediately (VPN test is interactive).
-    this.updateGuide();
-    this.updateGrade();
-
-    p.prepend(block);
-  },
-
-  // Permissions API scanner (async)
-  async scanPermissions(p, token) {
-    if (!p) return;
-    if (token && token !== scanToken) return;
-
-    p.innerHTML = '';
-    this.clearRisks(['Geo Permission', 'Notif Permission', 'Camera Permission', 'Mic Permission']);
-
-    const check = async (name, label) => {
-      try {
-        const result = await navigator.permissions.query({ name });
-        if (token && token !== scanToken) return;
-
-        const state = result.state; // 'granted', 'denied', 'prompt'
-        let alert = false;
-        let val = String(state).toUpperCase();
-
-        if (state === 'granted') { alert = true; val += ' (Exposed)'; }
-        if (state === 'denied') { val += ' (Protected)'; }
-        if (state === 'prompt') { val += ' (Ask First)'; }
-
-        this.addItem(p, 'risk', label, val, 'Browser permission state.', '', alert);
-      } catch (e) {
-        // Not supported
-      }
-    };
-
-    await check('geolocation', 'Geo Permission');
-    await check('notifications', 'Notif Permission');
-    await check('camera', 'Camera Permission');
-    await check('microphone', 'Mic Permission');
-  },
-
-  // Protection scanner — returns Promise for stable rescan
-  async scanProtection(p, token) {
-    if (!p) return;
-    if (token && token !== scanToken) return;
-
-    p.innerHTML = '';
-    this.clearRisks(['GPC Signal', 'Ad Blocker', 'Cookies']);
-
-    const gpc = navigator.globalPrivacyControl;
-    this.addItem(p, 'risk', 'GPC Signal', gpc ? 'On' : 'Off', 'Global Privacy Control signal.', 'Recommended to enable where available.', false, gpc ? 0 : 0.25);
-
-    // Cookies: informational (not graded heavily). If disabled, treat as good.
-    const cookiesEnabled = navigator.cookieEnabled;
-    // Cookies are educational here (not scored) because many legitimate flows still rely on first-party cookies.
-    this.addItem(p, 'risk', 'Cookies', cookiesEnabled ? 'Enabled' : 'Blocked', 'Cookies can be used for tracking.', 'Blocking reduces tracking surface (recommended).', false, 0);
-
-    // Adblock detection (fixed): use a "bait" element with a non-zero size
-    const bait = document.createElement('div');
-    bait.className = 'adsbox ad-banner ad-banner-top adunit adsbygoogle';
-    bait.style.cssText = 'position:absolute;left:-10000px;top:-10000px;width:10px;height:10px;';
-    document.body.appendChild(bait);
-
-    await new Promise((resolve) => setTimeout(resolve, 80));
-    if (token && token !== scanToken) { bait.remove(); return; }
-
-    const cs = window.getComputedStyle(bait);
-    const blocked = (cs && (cs.display === 'none' || cs.visibility === 'hidden')) || bait.offsetParent === null || bait.offsetHeight === 0;
-
-    State.hasAdBlock = blocked;
-    if (blocked) this.addItem(p, 'risk', 'Ad Blocker', 'Active', 'Great. Many tracking scripts are blocked.', '', false);
-    else this.addItem(p, 'risk', 'Ad Blocker', 'Missing', 'Install an ad blocker to reduce invisible tracking.', 'Recommended: uBlock Origin.', true);
-
-    bait.remove();
-  },
-
-  // Network scanner — returns Promise for stable rescan
-  async scanNetwork(p, token) {
-    if (!p) return;
-    if (token && token !== scanToken) return;
-
-    p.innerHTML = '';
-
-    // Render persisted VPN rows (informational)
-    this.renderVPNRows(p);
-
-    this.clearRisks(['Connection', 'Local IP Candidate', 'WebRTC', 'VPN']);
-
-    // Connection info
-    if (navigator.connection && navigator.connection.effectiveType) {
-      this.addItem(p, 'info', 'Connection', navigator.connection.effectiveType, '', '');
-    }
-
-    // WebRTC candidate check (local IP candidate)
-    await new Promise((resolve) => {
-      try {
-        const pc = new RTCPeerConnection({ iceServers: [] });
-        pc.createDataChannel('');
-        pc.createOffer().then(o => pc.setLocalDescription(o));
-
-        let candidateFound = false;
-
-        pc.onicecandidate = (e) => {
-          if (!e.candidate) return;
-          const cand = e.candidate.candidate || '';
-          const match = cand.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
-          if (match) {
-            candidateFound = true;
-            State.webRTCSafe = false;
-            // WebRTC local IP leak is high-signal (scored heavily).
-            this.addItem(p, 'risk', 'Local IP Candidate', match[0], 'A local IP candidate was observed via WebRTC.', 'Some setups reveal local network info.', true, 2.0);
-          }
-        };
-
-        setTimeout(() => {
-          try { pc.close(); } catch(e) {}
-          if (!candidateFound) {
-            State.webRTCSafe = true;
-            this.addItem(p, 'risk', 'WebRTC', 'Protected', 'No local IP candidate observed during test.', '', false);
-          }
-          resolve();
-        }, 900);
-      } catch (e) {
-        State.webRTCSafe = null;
-        this.addItem(p, 'risk', 'WebRTC', 'Unavailable', 'WebRTC candidate testing not supported here.', '', false);
-        resolve();
-      }
-    });
-  },
-
-  scanIdentity(p) {
-    if (!p) return;
-    p.innerHTML = '';
-    this.clearRisks(['Browser Privacy']);
-
-    const ua = navigator.userAgent || '';
-    State.isBrave = navigator.brave !== undefined;
-    State.isFirefox = ua.toLowerCase().includes('firefox');
-    const isChrome = /Chrome/.test(ua) && /Google Inc/.test(navigator.vendor || '') && !State.isBrave;
-
-    // Advisory only (not scored) — many users will run this on Chrome.
-    if (isChrome) this.addItem(p, 'risk', 'Browser Privacy', 'High Risk', 'Standard Chrome has weaker default privacy protections.', 'Consider Brave or Firefox for stronger defaults.', false, 0);
-    else this.addItem(p, 'risk', 'Browser Privacy', 'Better', 'Privacy-focused browser detected.', '', false, 0);
-
-    this.addItem(p, 'info', 'User Agent', ua, 'Browser "ID card".', '');
-    this.addItem(p, 'info', 'Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown', '', '');
-  },
-
-  scanHardware(p) {
-    if (!p) return;
-    p.innerHTML = '';
-    this.addItem(p, 'info', 'Screen', `${screen.width}x${screen.height}`, '', '');
-    this.addItem(p, 'info', 'Cores', navigator.hardwareConcurrency || '?', '', '');
-    this.addItem(p, 'info', 'RAM', navigator.deviceMemory ? `${navigator.deviceMemory} GB` : '?', '', '');
-  },
-
-  scanFP(p) {
-    if (!p) return;
-    p.innerHTML = '';
-    try {
-      const cv = document.getElementById('fp-canvas');
-      const ctx = cv.getContext('2d');
-      ctx.textBaseline = 'top';
-      ctx.font = '14px Arial';
-      ctx.fillStyle = '#f60';
-      ctx.fillRect(125, 1, 62, 20);
-      ctx.fillStyle = '#069';
-      ctx.fillText('Privacy!', 2, 15);
-      const s = cv.toDataURL();
-      let h = 0x811c9dc5;
-      for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h += (h<<1) + (h<<4) + (h<<7) + (h<<8) + (h<<24); }
-      const hash = (h >>> 0).toString(16).toUpperCase();
-      this.addItem(p, 'info', 'Canvas ID', hash, 'Rendering hash (can be used for fingerprinting).', '');
-    } catch (e) {}
-  },
-
-  scanSensors(p) {
-    if (!p) return;
-    p.innerHTML = '';
-
-    this.addBtn(p, 'gyro', 'Test Motion Sensors', '🔄', () => {
-      return new Promise((res) => {
-        const onMotion = (e) => {
-          if (e && e.accelerationIncludingGravity) {
-            this.addItem(p, 'risk', 'Motion', 'Exposed', 'This page received motion sensor data.', 'Many sites can request this with user permission (or on older devices, by default).', true);
-          }
-          res();
-        };
-        window.addEventListener('devicemotion', onMotion, { once: true });
-        setTimeout(() => res(), 1200);
-      });
-    });
-  },
-
-  scanSensitive(p) {
-    if (!p) return;
-    p.innerHTML = '';
-    this.clearRisks(['Contacts', 'Files']);
-
-    this.addBtn(p, 'contacts', 'Test Contacts', '👥', async () => {
-      const c = await navigator.contacts.select(['name'], { multiple: true });
-      if (c) this.addItem(p, 'risk', 'Contacts', 'Exposed', 'You granted access to contacts.', '', true);
-    });
-
-    this.addBtn(p, 'files', 'Test File Picker', '📂', async () => {
-      if ('showOpenFilePicker' in window) await window.showOpenFilePicker();
-      else {
-        const i = document.createElement('input');
-        i.type = 'file';
-        i.click();
-      }
-      this.addItem(p, 'risk', 'Files', 'User-initiated', 'File access requires a user gesture.', 'This is generally safe unless you approve it.', false);
-    });
-  },
-
-  scanFonts(p) {
-    if (!p) return;
-    p.innerHTML = '';
-    this.addItem(p, 'info', 'Fonts', 'System Default', 'Basic font detection not expanded in this build.', '');
-  },
-
-  scanMedia(p) {
-    if (!p) return;
-    p.innerHTML = '';
-    this.addBtn(p, 'media', 'Scan Media Devices', '📷', async () => {
-      const devs = await navigator.mediaDevices.enumerateDevices();
-      devs.forEach(d => this.addItem(p, 'info', d.kind, d.label || 'Hidden (permission required)', '', ''));
-    });
-  },
-
-  scanBehavior(p) {
-    if (!p) return;
-    p.innerHTML = '';
-
-    const demo = document.createElement('div');
-    demo.className = 'touch-demo';
-    demo.innerHTML = `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--sui-text-muted);font-size:14px;text-align:center">👆 Move mouse / touch here</div>`;
-    p.appendChild(demo);
-
-    const draw = (x, y) => {
-      const dot = document.createElement('div');
-      dot.className = 'touch-trail';
-      dot.style.left = x + 'px';
-      dot.style.top = y + 'px';
-      dot.style.background = 'var(--sui-blue-primary)';
-      demo.appendChild(dot);
-      setTimeout(() => dot.remove(), 500);
-    };
-
-    demo.addEventListener('mousemove', e => draw(e.offsetX, e.offsetY));
-    demo.addEventListener('touchmove', e => {
-      e.preventDefault();
-      const rect = demo.getBoundingClientRect();
-      const touch = e.touches[0];
-      draw(touch.clientX - rect.left, touch.clientY - rect.top);
-    }, { passive: false });
-  },
-
-  scanBattery(p) {
-    if (!p) return;
-    p.innerHTML = '';
-    if (navigator.getBattery) {
-      navigator.getBattery().then(b => {
-        this.addItem(p, 'info', 'Level', `${(b.level * 100).toFixed(0)}%`, '', '');
-      });
-    } else {
-      this.addItem(p, 'info', 'Battery API', 'Unavailable', '', '');
-    }
-  }
-};
-
-document.addEventListener('DOMContentLoaded', () => App.init());
-
-// PWA Logic
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').then(reg => {
-    if (reg.waiting) showUpdateToast(reg.waiting);
-    reg.onupdatefound = () => {
-      const newWorker = reg.installing;
-      newWorker.onstatechange = () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) showUpdateToast(newWorker);
-      };
-    };
-  });
-  navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
-}
-
-function showUpdateToast(worker) {
-  const t = document.getElementById('update-toast');
-  t.classList.add('visible');
-  document.getElementById('btn-update').onclick = () => worker.postMessage({ type: 'SKIP_WAITING' });
-}
-</script>
+    </div>
+  </header>
+
+  <main id="main-content" class="page-shell" tabindex="-1">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span> YOUR BROWSER, A LITTLE MORE VISIBLE</p>
+        <h1 id="page-title">Know what your<br class="desktop-break"> browser reveals<span class="accent">.</span></h1>
+        <p class="hero-description">A clearer picture of your digital footprint. See what this page can observe, understand the limits, and take your next step.</p>
+      </div>
+      <aside class="privacy-promise" aria-label="How your data is handled">
+        <span class="promise-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></svg></span>
+        <h2>Your results stay here.</h2>
+        <p>Automatic checks run on your device. No analytics, no accounts, and no permission prompts.</p>
+        <a href="#about-checks">How this works <span aria-hidden="true">↗</span></a>
+      </aside>
+    </section>
+
+    <noscript><div class="notice">Privacy Check needs JavaScript to read browser signals. Enable it for this site to run the local checks.</div></noscript>
+
+    <section class="overview" id="report" aria-labelledby="overview-title">
+      <div class="overview-topline">
+        <h2 id="overview-title">Privacy overview</h2>
+        <p id="scan-status" class="scan-status" role="status" aria-live="polite" aria-atomic="true">Preparing your local checks…</p>
+      </div>
+      <div class="overview-grid">
+        <div class="overview-result">
+          <span class="metric-label">What we observed</span>
+          <p class="result-value" id="o-grade">Checking…</p>
+          <p class="result-description" id="o-label">Reading the signals your browser makes available.</p>
+        </div>
+        <div class="overview-metric">
+          <span class="metric-label">Check coverage</span>
+          <p class="metric-value" id="check-count">—</p>
+          <p class="metric-description">Known results / available checks</p>
+        </div>
+        <div class="overview-metric">
+          <span class="metric-label">Device signals</span>
+          <p class="metric-value" id="signal-count">—</p>
+          <p class="metric-description">Observed here, not a uniqueness score</p>
+        </div>
+      </div>
+      <div class="overview-footer">
+        <p><span class="neutral-dot" aria-hidden="true"></span><span id="last-scan">Your first scan will begin automatically.</span></p>
+        <button class="text-button" id="download-report" type="button">Save report <span aria-hidden="true">↓</span></button>
+      </div>
+    </section>
+
+    <section class="action-section" aria-labelledby="action-title">
+      <div class="section-intro compact-intro">
+        <div><p class="eyebrow">SMALL STEPS, MORE CONTROL</p><h2 id="action-title">Your next steps</h2></div>
+        <p>Guidance based on what we can actually see.</p>
+      </div>
+      <div id="action-plan" class="action-grid"><p class="empty-state">Your suggestions will appear after the scan.</p></div>
+    </section>
+
+    <section class="results-section" aria-labelledby="checks-title">
+      <div class="section-intro">
+        <div><p class="eyebrow">01 / BROWSER SETTINGS</p><h2 id="checks-title">Check your protections</h2></div>
+        <p>Explore permissions, privacy signals, and network information. An unavailable result means we cannot tell.</p>
+      </div>
+      <div id="sec-actionable" class="checks-grid"></div>
+    </section>
+
+    <section class="network-callout" aria-labelledby="ip-title">
+      <div>
+        <p class="eyebrow">AN OPTIONAL EXPERIMENT</p>
+        <h2 id="ip-title">Did your public IP change?</h2>
+        <p>Compare before and after a network or VPN change. This sends a request to this site’s host and keeps the result in this tab. An IP change alone cannot verify a VPN.</p>
+      </div>
+      <button class="button button-secondary" id="vpn-test" type="button">Compare public IP <span aria-hidden="true">↗</span></button>
+    </section>
+
+    <section class="results-section" aria-labelledby="footprint-title">
+      <div class="section-intro">
+        <div><p class="eyebrow">02 / DEVICE FOOTPRINT</p><h2 id="footprint-title">The details that add up</h2></div>
+        <p>Ordinary browser features reveal useful details. Together, some can help sites recognize a device.</p>
+      </div>
+      <div id="sec-footprint" class="checks-grid"></div>
+    </section>
+
+    <section class="about-section" id="about-checks" aria-labelledby="about-title">
+      <div><p class="eyebrow">A LITTLE CONTEXT</p><h2 id="about-title">A snapshot.<br>Not a privacy certificate.</h2></div>
+      <div class="about-copy">
+        <p>This tool shows what <strong>this page</strong> can observe in this browser. It cannot see your settings on other sites, prove that trackers are blocked, or measure how unique you are.</p>
+        <p>Results are kept in this tab and are not uploaded. The optional public-IP comparison contacts this site’s host, which sees your IP as it does with other requests. The host may retain standard access logs.</p>
+        <p>Try changing a browser setting, then rescan to see what changes. Permission checks only read existing states; they never ask for camera, microphone, or location access.</p>
+        <p><strong>Save report</strong> downloads a file with your findings and device details. Public IP addresses and the canvas hash are excluded. Review the file before sharing it.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer page-shell">
+    <div><a class="footer-brand" href="./">Privacy Check</a><p>Made for curiosity. Built for clarity.</p></div>
+    <div class="footer-actions"><span class="version" id="app-version">v4.0.0</span><button class="text-button" id="clear-data" type="button" title="Clear saved theme, IP comparison, and optional demo results">Reset local session</button></div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+  <div class="update-toast" id="update-toast" role="status" hidden>
+    <div><strong>A fresh version is ready.</strong><p>Update when you’re ready to reload this page.</p></div>
+    <button class="button button-primary" id="btn-update" type="button">Update</button>
+  </div>
+  <canvas id="fp-canvas" width="200" height="50" hidden></canvas>
 </body>
 </html>
